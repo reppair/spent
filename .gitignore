@@ -26,3 +26,4 @@ yarn-error.log
 .mcp.json
 boost.json
 /.ai
+.DS_Store
