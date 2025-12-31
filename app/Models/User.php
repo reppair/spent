@@ -17,17 +17,6 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
-
-    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -64,17 +53,11 @@ class User extends Authenticatable
             ->implode('');
     }
 
-    /**
-     * @return BelongsToMany<Group, $this>
-     */
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class)->withPivot('role')->withTimestamps();
     }
 
-    /**
-     * @return HasMany<Expense, $this>
-     */
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

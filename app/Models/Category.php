@@ -12,25 +12,11 @@ class Category extends Model
     /** @use HasFactory<\Database\Factories\CategoryFactory> */
     use HasFactory;
 
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'group_id',
-        'name',
-    ];
-
-    /**
-     * @return BelongsTo<Group, $this>
-     */
     public function group(): BelongsTo
     {
         return $this->belongsTo(Group::class);
     }
 
-    /**
-     * @return HasMany<Expense, $this>
-     */
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
