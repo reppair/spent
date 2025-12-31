@@ -20,32 +20,39 @@ class ExpenseSeeder extends Seeder
             return;
         }
 
-        $group = $user->groups()->where('name', 'Personal')->first();
+        $groups = [
+            'Personal' => 25,
+            'Household' => 25,
+        ];
 
-        if (! $group) {
-            return;
-        }
-
-        $categories = $group->categories;
-        $expensesPerMonth = 40;
         $monthsBack = 6;
 
-        for ($month = 0; $month < $monthsBack; $month++) {
-            $startOfMonth = Carbon::now()->subMonths($month)->startOfMonth();
-            $endOfMonth = Carbon::now()->subMonths($month)->endOfMonth();
+        foreach ($groups as $groupName => $expensesPerMonth) {
+            $group = $user->groups()->where('name', $groupName)->first();
 
-            for ($i = 0; $i < $expensesPerMonth; $i++) {
-                $randomDate = Carbon::createFromTimestamp(
-                    fake()->numberBetween($startOfMonth->timestamp, $endOfMonth->timestamp)
-                );
+            if (! $group) {
+                continue;
+            }
 
-                Expense::factory()->create([
-                    'group_id' => $group->id,
-                    'user_id' => $user->id,
-                    'category_id' => $categories->random()->id,
-                    'created_at' => $randomDate,
-                    'updated_at' => $randomDate,
-                ]);
+            $categories = $group->categories;
+
+            for ($month = 0; $month < $monthsBack; $month++) {
+                $startOfMonth = Carbon::now()->subMonths($month)->startOfMonth();
+                $endOfMonth = Carbon::now()->subMonths($month)->endOfMonth();
+
+                for ($i = 0; $i < $expensesPerMonth; $i++) {
+                    $randomDate = Carbon::createFromTimestamp(
+                        fake()->numberBetween($startOfMonth->timestamp, $endOfMonth->timestamp)
+                    );
+
+                    Expense::factory()->create([
+                        'group_id' => $group->id,
+                        'user_id' => $user->id,
+                        'category_id' => $categories->random()->id,
+                        'created_at' => $randomDate,
+                        'updated_at' => $randomDate,
+                    ]);
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Group;
 use App\Models\User;
+use App\Role;
 use Illuminate\Database\Seeder;
 
 class GroupSeeder extends Seeder
@@ -24,7 +25,13 @@ class GroupSeeder extends Seeder
         $group = Group::firstOrCreate(['name' => 'Personal']);
 
         $group->users()->syncWithoutDetaching([
-            $user->id => ['role' => 'owner'],
+            $user->id => ['role' => Role::Owner],
+        ]);
+
+        $group = Group::firstOrCreate(['name' => 'Household']);
+
+        $group->users()->syncWithoutDetaching([
+            $user->id => ['role' => Role::Owner],
         ]);
     }
 }

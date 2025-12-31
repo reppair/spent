@@ -19,7 +19,22 @@ class CategorySeeder extends Seeder
             return;
         }
 
-        $categories = ['Groceries', 'Bills', 'Alcohol & Tobacco', 'Other'];
+        $categories = ['Alcohol & Tobacco', 'Lunch and Coffee', 'Vehicle Maintenance', 'Gas', 'Other'];
+
+        foreach ($categories as $name) {
+            Category::firstOrCreate(
+                ['group_id' => $group->id, 'name' => $name],
+            );
+        }
+
+
+        $group = Group::where('name', 'Household')->first();
+
+        if (! $group) {
+            return;
+        }
+
+        $categories = ['Groceries', 'Bills', 'Subscriptions', 'Other'];
 
         foreach ($categories as $name) {
             Category::firstOrCreate(
