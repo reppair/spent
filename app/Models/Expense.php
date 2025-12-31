@@ -15,6 +15,7 @@ class Expense extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'group_id',
         'user_id',
         'category_id',
         'amount',
@@ -29,6 +30,14 @@ class Expense extends Model
         return [
             'amount' => 'integer',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Group, $this>
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     /**

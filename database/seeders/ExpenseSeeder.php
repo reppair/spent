@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Expense;
 use App\Models\User;
 use Carbon\Carbon;
@@ -15,15 +14,19 @@ class ExpenseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password'),
-            ]
-        );
+        $user = User::where('email', 'test@example.com')->first();
 
-        $categories = Category::all();
+        if (! $user) {
+            return;
+        }
+
+        $group = $user->groups()->where('name', 'Personal')->first();
+
+        if (! $group) {
+            return;
+        }
+
+        $categories = $group->categories;
         $expensesPerMonth = 40;
         $monthsBack = 6;
 
@@ -37,6 +40,7 @@ class ExpenseSeeder extends Seeder
                 );
 
                 Expense::factory()->create([
+                    'group_id' => $group->id,
                     'user_id' => $user->id,
                     'category_id' => $categories->random()->id,
                     'created_at' => $randomDate,

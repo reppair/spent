@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use App\Models\User;
+use App\Models\Group;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -13,19 +13,17 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password'),
-            ]
-        );
+        $group = Group::where('name', 'Personal')->first();
+
+        if (! $group) {
+            return;
+        }
 
         $categories = ['Groceries', 'Bills', 'Alcohol & Tobacco', 'Other'];
 
         foreach ($categories as $name) {
             Category::firstOrCreate(
-                ['user_id' => $user->id, 'name' => $name],
+                ['group_id' => $group->id, 'name' => $name],
             );
         }
     }

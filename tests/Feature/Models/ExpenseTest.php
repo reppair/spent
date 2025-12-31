@@ -2,6 +2,7 @@
 
 use App\Models\Category;
 use App\Models\Expense;
+use App\Models\Group;
 use App\Models\User;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -12,6 +13,16 @@ it('can be created with factory', function () {
     expect($expense)->toBeInstanceOf(Expense::class)
         ->and($expense->id)->toBeInt()
         ->and($expense->amount)->toBeInt();
+});
+
+it('belongs to a group', function () {
+    $group = Group::factory()->create();
+    $user = User::factory()->create();
+    $category = Category::factory()->for($group)->create();
+    $expense = Expense::factory()->for($group)->for($user)->for($category)->create();
+
+    expect($expense->group)->toBeInstanceOf(Group::class)
+        ->and($expense->group->id)->toBe($group->id);
 });
 
 it('belongs to a user', function () {
@@ -45,10 +56,12 @@ it('has nullable notes', function () {
 });
 
 it('has fillable attributes', function () {
+    $group = Group::factory()->create();
     $user = User::factory()->create();
-    $category = Category::factory()->create();
+    $category = Category::factory()->for($group)->create();
 
     $expense = Expense::create([
+        'group_id' => $group->id,
         'user_id' => $user->id,
         'category_id' => $category->id,
         'amount' => 5000,
@@ -56,5 +69,6 @@ it('has fillable attributes', function () {
     ]);
 
     expect($expense->amount)->toBe(5000)
-        ->and($expense->notes)->toBe('Lunch');
+        ->and($expense->notes)->toBe('Lunch')
+        ->and($expense->group_id)->toBe($group->id);
 });

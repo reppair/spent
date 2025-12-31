@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -64,11 +65,11 @@ class User extends Authenticatable
     }
 
     /**
-     * @return HasMany<Category, $this>
+     * @return BelongsToMany<Group, $this>
      */
-    public function categories(): HasMany
+    public function groups(): BelongsToMany
     {
-        return $this->hasMany(Category::class);
+        return $this->belongsToMany(Group::class)->withPivot('role')->withTimestamps();
     }
 
     /**

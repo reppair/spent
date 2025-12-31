@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Category;
+use App\Models\Group;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,6 +20,7 @@ class ExpenseFactory extends Factory
     public function definition(): array
     {
         return [
+            'group_id' => Group::factory(),
             'user_id' => User::factory(),
             'category_id' => Category::factory(),
             'amount' => fake()->numberBetween(100, 50000),
