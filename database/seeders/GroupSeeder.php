@@ -15,9 +15,9 @@ class GroupSeeder extends Seeder
     public function run(): void
     {
         $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'martin@blagoev.xyz'],
             [
-                'name' => 'Test User',
+                'name' => 'Martin Blagoev',
                 'password' => bcrypt('password'),
             ]
         );
