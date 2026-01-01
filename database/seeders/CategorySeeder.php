@@ -27,7 +27,6 @@ class CategorySeeder extends Seeder
             );
         }
 
-
         $group = Group::where('name', 'Household')->first();
 
         if (! $group) {
