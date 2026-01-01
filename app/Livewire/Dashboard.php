@@ -33,10 +33,7 @@ class Dashboard extends Component
 
     public function updatedSelectedGroups(): void
     {
-        $user = auth()->user();
-        $settings = $user->settings ?? [];
-        $settings['dashboard_selected_groups'] = $this->selectedGroups;
-        $user->update(['settings' => $settings]);
+        auth()->user()->updateSetting('dashboard_selected_groups', $this->selectedGroups);
     }
 
     #[Computed(cache: true)]

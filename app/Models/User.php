@@ -63,4 +63,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Expense::class);
     }
+
+    public function updateSetting(string $key, string|int|array $value): void
+    {
+        $settings = $this->settings ?? [];
+        $settings[$key] = $value;
+        $this->update(['settings' => $settings]);
+    }
 }
