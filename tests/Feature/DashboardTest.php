@@ -4,6 +4,8 @@ use App\Livewire\Dashboard;
 use App\Models\Expense;
 use App\Models\Group;
 use App\Models\User;
+use Flux\DateRange;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
@@ -19,41 +21,97 @@ test('authenticated users can visit the dashboard', function () {
     $this->actingAs($user)->get('/dashboard')->assertStatus(200);
 });
 
-test('selected groups are persisted to user settings', function () {
-    $user = User::factory()->create();
-    $group1 = Group::factory()->create();
-    $group2 = Group::factory()->create();
-    $user->groups()->attach([$group1->id, $group2->id]);
+describe('selected groups', function () {
+    test('selected groups are persisted to user settings', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->create();
+        $group2 = Group::factory()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
 
-    Livewire::actingAs($user)
-        ->test(Dashboard::class)
-        ->set('selectedGroups', [$group1->id, $group2->id]);
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group1->id, $group2->id]);
 
-    $user->refresh();
-    expect($user->settings['dashboard_selected_groups'])->toBe([$group1->id, $group2->id]);
+        $user->refresh();
+        expect($user->settings['dashboard_selected_groups'])->toBe([$group1->id, $group2->id]);
+    });
+
+    test('selected groups are loaded from user settings on mount', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->create();
+        $group2 = Group::factory()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+        $user->update(['settings' => ['dashboard_selected_groups' => [$group2->id]]]);
+
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->assertSet('selectedGroups', [$group2->id]);
+    });
+
+    test('defaults to first group when no saved selection exists', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->create();
+        $group2 = Group::factory()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->assertSet('selectedGroups', [$group1->id]);
+    });
 });
 
-test('selected groups are loaded from user settings on mount', function () {
-    $user = User::factory()->create();
-    $group1 = Group::factory()->create();
-    $group2 = Group::factory()->create();
-    $user->groups()->attach([$group1->id, $group2->id]);
-    $user->update(['settings' => ['dashboard_selected_groups' => [$group2->id]]]);
+describe('date range', function () {
+    test('defaults to this month when no session exists', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
 
-    Livewire::actingAs($user)
-        ->test(Dashboard::class)
-        ->assertSet('selectedGroups', [$group2->id]);
-});
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class);
 
-test('defaults to first group when no saved selection exists', function () {
-    $user = User::factory()->create();
-    $group1 = Group::factory()->create();
-    $group2 = Group::factory()->create();
-    $user->groups()->attach([$group1->id, $group2->id]);
+        $dateRange = $component->get('dateRange');
+        expect($dateRange)
+            ->toBeInstanceOf(DateRange::class)
+            ->and($dateRange->start()->toDateString())->toBe(now()->startOfMonth()->toDateString())
+            ->and($dateRange->end()->toDateString())->toBe(now()->endOfMonth()->toDateString());
+    });
 
-    Livewire::actingAs($user)
-        ->test(Dashboard::class)
-        ->assertSet('selectedGroups', [$group1->id]);
+    test('can be set to a custom range', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        $start = now()->subDays(7)->toDateString();
+        $end = now()->toDateString();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('dateRange', ['start' => $start, 'end' => $end]);
+
+        $dateRange = $component->get('dateRange');
+        expect($dateRange->start()->toDateString())->toBe($start)
+            ->and($dateRange->end()->toDateString())->toBe($end);
+    });
+
+    test('can use preset ranges', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        $lastMonth = DateRange::lastMonth();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('dateRange', [
+                'start' => $lastMonth->start()->toDateString(),
+                'end' => $lastMonth->end()->toDateString(),
+                'preset' => 'lastMonth',
+            ]);
+
+        $dateRange = $component->get('dateRange');
+        expect($dateRange->start()->toDateString())->toBe(now()->startOfMonth()->subMonth()->toDateString())
+            ->and($dateRange->end()->toDateString())->toBe(now()->startOfMonth()->subMonth()->endOfMonth()->toDateString());
+    });
 });
 
 describe('selectedGroupsLabel', function () {
@@ -222,7 +280,114 @@ describe('expenses querying', function () {
             ->test(Dashboard::class)
             ->set('selectedGroups', [$group->id]);
 
-        expect($component->get('expenses'))->toBeInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class);
-        expect($component->get('expenses')->total())->toBe(20);
+        $expenses = $component->get('expenses');
+        expect($expenses)->toBeInstanceOf(LengthAwarePaginator::class)
+            ->and($expenses->total())->toBe(20);
+    });
+
+    test('filters expenses by date range', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        // Create expense within this month
+        $thisMonthExpense = Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->startOfMonth()->addDays(5),
+        ]);
+
+        // Create expense from last month (outside default range)
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->subMonth(),
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        expect($component->get('expenses')->pluck('id')->all())->toBe([$thisMonthExpense->id]);
+    });
+
+    test('excludes expenses outside the date range', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        // Create expense within this month
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now(),
+        ]);
+
+        // Create expenses outside the range
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->subMonths(2),
+        ]);
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->addMonths(2),
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        expect($component->get('expenses'))->toHaveCount(1);
+    });
+
+    test('respects custom date range when filtering expenses', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        // Create expense from last month
+        $lastMonthExpense = Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->subMonth()->startOfMonth()->addDays(5),
+        ]);
+
+        // Create expense from this month
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now(),
+        ]);
+
+        $lastMonth = DateRange::lastMonth();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id])
+            ->set('dateRange', [
+                'start' => $lastMonth->start()->toDateString(),
+                'end' => $lastMonth->end()->toDateString(),
+                'preset' => 'lastMonth',
+            ]);
+
+        expect($component->get('expenses')->pluck('id')->all())->toBe([$lastMonthExpense->id]);
+    });
+
+    test('uses default date range of this month', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        // Create expense at start of this month
+        $startOfMonthExpense = Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->startOfMonth(),
+        ]);
+
+        // Create expense at end of this month
+        $endOfMonthExpense = Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->endOfMonth(),
+        ]);
+
+        // Create expense from previous month (should be excluded)
+        Expense::factory()->for($user)->for($group)->create([
+            'created_at' => now()->subMonth()->endOfMonth(),
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        $expenseIds = $component->get('expenses')->pluck('id')->all();
+        expect($expenseIds)->toContain($startOfMonthExpense->id)
+            ->and($expenseIds)->toContain($endOfMonthExpense->id)
+            ->and($expenseIds)->toHaveCount(2);
     });
 });

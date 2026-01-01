@@ -15,29 +15,17 @@
         <flux:spacer/>
 
         <div class="flex space-x-2">
-            <flux:dropdown>
-                <flux:button size="sm">Current Month</flux:button>
-
-                <flux:menu>
-                    <div class="flex gap-4">
-                        <div>
-                            <flux:calendar mode="range"/>
-                        </div>
-
-                        <div class="pt-12">
-                            <flux:menu.group heading="Quick Filters">
-                                <flux:menu.item>Current Week</flux:menu.item>
-                                <flux:menu.item>Last Week</flux:menu.item>
-                                <flux:menu.item>Current Month</flux:menu.item>
-                                <flux:menu.item>Last Month</flux:menu.item>
-                                <flux:menu.item>Current Year</flux:menu.item>
-                                <flux:menu.item>Last Year</flux:menu.item>
-                                <flux:menu.item>All Time</flux:menu.item>
-                            </flux:menu.group>
-                        </div>
-                    </div>
-                </flux:menu>
-            </flux:dropdown>
+            <flux:date-picker
+                mode="range"
+                with-presets
+                presets="today yesterday thisWeek lastWeek thisMonth lastMonth yearToDate lastYear allTime"
+                :min="$this->allTimeMin"
+                with-today
+                start-day="1"
+                size="sm"
+                :locale="app()->getLocale()"
+                wire:model.live="dateRange"
+            />
 
             <flux:button size="sm" icon:trailing="chevron-left"></flux:button>
             <flux:button size="sm" icon:trailing="chevron-right"></flux:button>
@@ -86,7 +74,7 @@
         </flux:card>
     </div>
 
-    <div class="relative h-full flex-1 overflow-hidden rounded-xl">
+    <div class="relative h-full flex-1 overflow-hidden">
         <flux:table :paginate="$this->expenses">
             <flux:table.columns>
                 <flux:table.column
