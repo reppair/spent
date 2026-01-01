@@ -1,16 +1,18 @@
 <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     <div class="flex items-center">
         <flux:dropdown>
-            <flux:button size="sm" icon:trailing="chevron-down">Personal, Household</flux:button>
+            <flux:button size="sm" icon:trailing="chevron-down">{{ $this->selectedGroupsLabel }}</flux:button>
 
             <flux:menu keep-open>
-                <flux:menu.checkbox checked>Personal</flux:menu.checkbox>
-                <flux:menu.checkbox checked>Household</flux:menu.checkbox>
-                <flux:menu.checkbox>Hobie</flux:menu.checkbox>
+                <flux:menu.checkbox.group wire:model.live="selectedGroups">
+                    @foreach($this->groups as $group)
+                        <flux:menu.checkbox :value="$group->id" :label="$group->name" />
+                    @endforeach
+                </flux:menu.checkbox.group>
             </flux:menu>
         </flux:dropdown>
 
-        <flux:spacer />
+        <flux:spacer/>
 
         <div class="flex space-x-2">
             <flux:dropdown>
@@ -19,7 +21,7 @@
                 <flux:menu>
                     <div class="flex gap-4">
                         <div>
-                            <flux:calendar mode="range" />
+                            <flux:calendar mode="range"/>
                         </div>
 
                         <div class="pt-12">
@@ -51,8 +53,8 @@
 
             <flux:chart class="-mx-8 -mb-8 h-[3rem]" :value="[10, 12, 11, 13, 15, 14, 16, 18, 17, 19, 21, 20]">
                 <flux:chart.svg gutter="0">
-                    <flux:chart.line class="text-sky-200 dark:text-sky-400" />
-                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30" />
+                    <flux:chart.line class="text-sky-200 dark:text-sky-400"/>
+                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30"/>
                 </flux:chart.svg>
             </flux:chart>
         </flux:card>
@@ -65,8 +67,8 @@
 
             <flux:chart class="-mx-8 -mb-8 h-[3rem]" :value="[10, 12, 11, 13, 15, 14, 16, 18, 17, 19, 21, 20]">
                 <flux:chart.svg gutter="0">
-                    <flux:chart.line class="text-sky-200 dark:text-sky-400" />
-                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30" />
+                    <flux:chart.line class="text-sky-200 dark:text-sky-400"/>
+                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30"/>
                 </flux:chart.svg>
             </flux:chart>
         </flux:card>
@@ -77,8 +79,8 @@
             <flux:heading size="xl" class="mt-2 tabular-nums">$12,345</flux:heading>
             <flux:chart class="-mx-8 -mb-8 h-[3rem]" :value="[10, 12, 11, 13, 15, 14, 16, 18, 17, 19, 21, 20]">
                 <flux:chart.svg gutter="0">
-                    <flux:chart.line class="text-sky-200 dark:text-sky-400" />
-                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30" />
+                    <flux:chart.line class="text-sky-200 dark:text-sky-400"/>
+                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30"/>
                 </flux:chart.svg>
             </flux:chart>
         </flux:card>
@@ -112,18 +114,21 @@
             </flux:table.columns>
 
             <flux:table.rows>
-                @foreach($this->expenses as $e)
-                    <flux:table.row :key="$e->id">
-                        <flux:table.cell class="whitespace-nowrap">{{ $e->created_at->toFormattedDateString() }}</flux:table.cell>
-
-                        <flux:table.cell>
-                            <flux:badge size="sm" inset="top bottom">{{ $e->category->name }}</flux:badge>
+                @foreach($this->expenses as $expense)
+                    <flux:table.row :key="$expense->id">
+                        <flux:table.cell class="whitespace-nowrap">
+                            {{ $expense->created_at->toFormattedDateString() }}
                         </flux:table.cell>
 
-                        <flux:table.cell class="hidden md:table-cell">{{ Str::limit($e->note, 40) }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge size="sm" inset="top bottom">{{ $expense->category->name }}</flux:badge>
+                        </flux:table.cell>
+
+                        <flux:table.cell
+                            class="hidden md:table-cell">{{ Str::limit($expense->note, 40) }}</flux:table.cell>
 
                         <flux:table.cell align="end">
-                            <span class="pr-2">{{ $e->formatted_amount }}</span>
+                            <span class="pr-2">{{ $expense->formatted_amount }}</span>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach
