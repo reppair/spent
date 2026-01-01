@@ -13,6 +13,7 @@ class Dashboard extends Component
     use WithPagination;
 
     public $sortBy = 'created_at';
+
     public $sortDirection = 'desc';
 
     public function sort($column): void
@@ -29,6 +30,8 @@ class Dashboard extends Component
     public function expenses()
     {
         return Expense::query()
+            ->where('user_id', auth()->id())
+            ->with('category')
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate();
     }

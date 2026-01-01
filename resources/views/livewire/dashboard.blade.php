@@ -84,38 +84,50 @@
         </flux:card>
     </div>
 
-    <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+    <div class="relative h-full flex-1 overflow-hidden rounded-xl">
         <flux:table :paginate="$this->expenses">
             <flux:table.columns>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'created_at'"
+                    :direction="$sortDirection"
+                    wire:click="sort('created_at')"
+                >
+                    Date
+                </flux:table.column>
+
                 <flux:table.column>Category</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'amount'" :direction="$sortDirection" wire:click="sort('amount')">Amount</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Date</flux:table.column>
-                <flux:table.column>Description</flux:table.column>
+
+                <flux:table.column class="hidden md:table-cell">Note</flux:table.column>
+
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'amount'"
+                    :direction="$sortDirection"
+                    wire:click="sort('amount')"
+                    align="end"
+                >
+                    Amount
+                </flux:table.column>
             </flux:table.columns>
 
-{{--            <flux:table.rows>--}}
-{{--                @foreach ($this->expenses as $order)--}}
-{{--                    <flux:table.row :key="$order->id">--}}
-{{--                        <flux:table.cell class="flex items-center gap-3">--}}
-{{--                            <flux:avatar size="xs" src="{{ $order->customer_avatar }}" />--}}
+            <flux:table.rows>
+                @foreach($this->expenses as $e)
+                    <flux:table.row :key="$e->id">
+                        <flux:table.cell class="whitespace-nowrap">{{ $e->created_at->toFormattedDateString() }}</flux:table.cell>
 
-{{--                            {{ $order->customer }}--}}
-{{--                        </flux:table.cell>--}}
+                        <flux:table.cell>
+                            <flux:badge size="sm" inset="top bottom">{{ $e->category->name }}</flux:badge>
+                        </flux:table.cell>
 
-{{--                        <flux:table.cell class="whitespace-nowrap">{{ $order->date }}</flux:table.cell>--}}
+                        <flux:table.cell class="hidden md:table-cell">{{ Str::limit($e->note, 40) }}</flux:table.cell>
 
-{{--                        <flux:table.cell>--}}
-{{--                            <flux:badge size="sm" :color="$order->status_color" inset="top bottom">{{ $order->status }}</flux:badge>--}}
-{{--                        </flux:table.cell>--}}
-
-{{--                        <flux:table.cell variant="strong">{{ $order->amount }}</flux:table.cell>--}}
-
-{{--                        <flux:table.cell>--}}
-{{--                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom"></flux:button>--}}
-{{--                        </flux:table.cell>--}}
-{{--                    </flux:table.row>--}}
-{{--                @endforeach--}}
-{{--            </flux:table.rows>--}}
+                        <flux:table.cell align="end">
+                            <span class="pr-2">{{ $e->formatted_amount }}</span>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforeach
+            </flux:table.rows>
         </flux:table>
     </div>
 </div>
