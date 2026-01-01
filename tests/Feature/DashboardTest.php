@@ -102,3 +102,44 @@ describe('selectedGroupsLabel', function () {
             ->assertSet('selectedGroupsLabel', Str::limit($longName));
     });
 });
+
+describe('sorting', function () {
+    test('defaults to created_at descending', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->assertSet('sortBy', 'created_at')
+            ->assertSet('sortDirection', 'desc');
+    });
+
+    test('toggles direction when sorting same column', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->call('sort', 'created_at')
+            ->assertSet('sortBy', 'created_at')
+            ->assertSet('sortDirection', 'asc')
+            ->call('sort', 'created_at')
+            ->assertSet('sortDirection', 'desc');
+    });
+
+    test('sets new column with ascending direction', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->assertSet('sortBy', 'created_at')
+            ->assertSet('sortDirection', 'desc')
+            ->call('sort', 'amount')
+            ->assertSet('sortBy', 'amount')
+            ->assertSet('sortDirection', 'asc');
+    });
+});
