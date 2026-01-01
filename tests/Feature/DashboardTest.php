@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Dashboard;
+use App\Models\Expense;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -141,5 +142,87 @@ describe('sorting', function () {
             ->call('sort', 'amount')
             ->assertSet('sortBy', 'amount')
             ->assertSet('sortDirection', 'asc');
+    });
+});
+
+describe('expenses querying', function () {
+    test('returns only expenses from selected groups', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->create();
+        $group2 = Group::factory()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        $expense1 = Expense::factory()->for($user)->for($group1)->create();
+        $expense2 = Expense::factory()->for($user)->for($group2)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group1->id]);
+
+        expect($component->get('expenses')->pluck('id')->all())->toBe([$expense1->id]);
+    });
+
+    test('excludes expenses from non-selected groups', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->create();
+        $group2 = Group::factory()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        Expense::factory()->for($user)->for($group1)->create();
+        Expense::factory()->for($user)->for($group2)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group1->id]);
+
+        expect($component->get('expenses'))->toHaveCount(1);
+    });
+
+    test('eager loads category relationship', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        expect($component->get('expenses')->first()->relationLoaded('category'))->toBeTrue();
+    });
+
+    test('respects sort order', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        $expense1 = Expense::factory()->for($user)->for($group)->create(['amount' => 100]);
+        $expense2 = Expense::factory()->for($user)->for($group)->create(['amount' => 300]);
+        $expense3 = Expense::factory()->for($user)->for($group)->create(['amount' => 200]);
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id])
+            ->set('sortBy', 'amount')
+            ->set('sortDirection', 'asc');
+
+        expect($component->get('expenses')->pluck('id')->all())
+            ->toBe([$expense1->id, $expense3->id, $expense2->id]);
+    });
+
+    test('returns paginated results', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->count(20)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        expect($component->get('expenses'))->toBeInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class);
+        expect($component->get('expenses')->total())->toBe(20);
     });
 });
