@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -47,10 +48,16 @@ class Dashboard extends Component
     #[Computed]
     public function selectedGroupsLabel(): string
     {
-        return $this->groups
+        $label = $this->groups
             ->whereIn('id', $this->selectedGroups)
             ->pluck('name')
-            ->implode(', ') ?: __('Select a group');
+            ->implode(', ');
+
+        if (! $label) {
+            return __('Select a group');
+        }
+
+        return Str::limit($label);
     }
 
     public function sort($column): void
