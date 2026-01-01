@@ -1,5 +1,6 @@
 <?php
 
+use App\Currency;
 use App\Models\Category;
 use App\Models\Expense;
 use App\Models\Group;
@@ -77,4 +78,22 @@ it('has fillable attributes', function () {
     expect($expense->amount)->toBe(5000)
         ->and($expense->note)->toBe('Lunch')
         ->and($expense->group_id)->toBe($group->id);
+});
+
+it('returns formatted amount with currency sign', function () {
+    $expense = Expense::factory()->create([
+        'amount' => 1234,
+        'currency' => Currency::EUR,
+    ]);
+
+    expect($expense->formatted_amount)->toBe('€12.34');
+});
+
+it('formats amount with USD sign', function () {
+    $expense = Expense::factory()->create([
+        'amount' => 9999,
+        'currency' => Currency::USD,
+    ]);
+
+    expect($expense->formatted_amount)->toBe('$99.99');
 });

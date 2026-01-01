@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Currency;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +20,7 @@ class Expense extends Model
     {
         return [
             'amount' => 'integer',
+            'currency' => Currency::class,
         ];
     }
 
@@ -34,5 +37,10 @@ class Expense extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    protected function formattedAmount(): Attribute
+    {
+        return Attribute::get(fn () => $this->currency->sign().number_format($this->amount / 100, 2));
     }
 }
