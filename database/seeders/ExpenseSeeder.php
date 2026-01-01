@@ -14,7 +14,7 @@ class ExpenseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::where('email', 'test@example.com')->first();
+        $user = User::where('email', 'martin@blagoev.xyz')->first();
 
         if (! $user) {
             return;
