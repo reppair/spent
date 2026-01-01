@@ -63,3 +63,9 @@ it('has fillable name', function () {
 
     expect($group->name)->toBe('Household');
 });
+
+it('has currency with default value', function () {
+    $group = Group::factory()->create();
+
+    expect($group->currency)->toBe(config('app.default_currency'));
+});

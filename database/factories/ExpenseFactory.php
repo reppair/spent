@@ -24,7 +24,8 @@ class ExpenseFactory extends Factory
             'user_id' => User::factory(),
             'category_id' => Category::factory(),
             'amount' => fake()->numberBetween(100, 50000),
-            'notes' => fake()->optional(0.3)->sentence(),
+            'currency' => config('app.default_currency'),
+            'note' => fake()->optional(0.3)->sentence(),
         ];
     }
 }

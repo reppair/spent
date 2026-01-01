@@ -47,12 +47,18 @@ it('stores amount in cents', function () {
     expect($expense->amount)->toBe(1234);
 });
 
-it('has nullable notes', function () {
-    $expenseWithNotes = Expense::factory()->create(['notes' => 'Test note']);
-    $expenseWithoutNotes = Expense::factory()->create(['notes' => null]);
+it('has nullable note', function () {
+    $expenseWithNote = Expense::factory()->create(['note' => 'Test note']);
+    $expenseWithoutNote = Expense::factory()->create(['note' => null]);
 
-    expect($expenseWithNotes->notes)->toBe('Test note')
-        ->and($expenseWithoutNotes->notes)->toBeNull();
+    expect($expenseWithNote->note)->toBe('Test note')
+        ->and($expenseWithoutNote->note)->toBeNull();
+});
+
+it('has currency with default value', function () {
+    $expense = Expense::factory()->create();
+
+    expect($expense->currency)->toBe(config('app.default_currency'));
 });
 
 it('has fillable attributes', function () {
@@ -65,10 +71,10 @@ it('has fillable attributes', function () {
         'user_id' => $user->id,
         'category_id' => $category->id,
         'amount' => 5000,
-        'notes' => 'Lunch',
+        'note' => 'Lunch',
     ]);
 
     expect($expense->amount)->toBe(5000)
-        ->and($expense->notes)->toBe('Lunch')
+        ->and($expense->note)->toBe('Lunch')
         ->and($expense->group_id)->toBe($group->id);
 });
