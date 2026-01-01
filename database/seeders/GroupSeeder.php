@@ -19,6 +19,7 @@ class GroupSeeder extends Seeder
             [
                 'name' => 'Martin Blagoev',
                 'password' => bcrypt('password'),
+                'created_at' => now()->subMonths(6), // we seed expenses 6 months back, so match the creation timestamp
             ]
         );
 
