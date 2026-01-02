@@ -282,7 +282,8 @@ describe('expenses querying', function () {
 
         $expenses = $component->get('expenses');
         expect($expenses)->toBeInstanceOf(LengthAwarePaginator::class)
-            ->and($expenses->total())->toBe(20);
+            ->and($expenses->total())->toBe(20)
+            ->and($expenses)->toHaveCount(10); // default perPage is 10
     });
 
     test('filters expenses by date range', function () {
@@ -389,5 +390,70 @@ describe('expenses querying', function () {
         expect($expenseIds)->toContain($startOfMonthExpense->id)
             ->and($expenseIds)->toContain($endOfMonthExpense->id)
             ->and($expenseIds)->toHaveCount(2);
+    });
+});
+
+describe('perPage', function () {
+    test('defaults to 10 items per page', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->count(15)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id]);
+
+        $paginator = $component->get('expenses');
+        expect($component->get('perPage'))->toBe(10)
+            ->and($paginator->perPage())->toBe(10)
+            ->and($paginator->currentPage())->toBe(1)
+            ->and($paginator->total())->toBe(15)
+            ->and($paginator->lastPage())->toBe(2)
+            ->and($paginator->hasMorePages())->toBeTrue()
+            ->and($paginator)->toHaveCount(10);
+    });
+
+    test('can change items per page', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->count(30)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id])
+            ->set('perPage', 25);
+
+        $paginator = $component->get('expenses');
+        expect($paginator->perPage())->toBe(25)
+            ->and($paginator->currentPage())->toBe(1)
+            ->and($paginator->total())->toBe(30)
+            ->and($paginator->lastPage())->toBe(2)
+            ->and($paginator->hasMorePages())->toBeTrue()
+            ->and($paginator)->toHaveCount(25);
+    });
+
+    test('respects perPage when fewer items exist', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create();
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->count(5)->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(Dashboard::class)
+            ->set('selectedGroups', [$group->id])
+            ->set('perPage', 25);
+
+        $paginator = $component->get('expenses');
+        expect($paginator->perPage())->toBe(25)
+            ->and($paginator->currentPage())->toBe(1)
+            ->and($paginator->total())->toBe(5)
+            ->and($paginator->lastPage())->toBe(1)
+            ->and($paginator->hasMorePages())->toBeFalse()
+            ->and($paginator)->toHaveCount(5);
     });
 });

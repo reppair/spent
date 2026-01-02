@@ -14,22 +14,17 @@
 
         <flux:spacer/>
 
-        <div class="flex space-x-2">
-            <flux:date-picker
-                mode="range"
-                with-presets
-                presets="today yesterday thisWeek lastWeek thisMonth lastMonth yearToDate lastYear allTime"
-                :min="$this->allTimeMin"
-                with-today
-                start-day="1"
-                size="sm"
-                :locale="app()->getLocale()"
-                wire:model.live="dateRange"
-            />
-
-            <flux:button size="sm" icon:trailing="chevron-left"></flux:button>
-            <flux:button size="sm" icon:trailing="chevron-right"></flux:button>
-        </div>
+        <flux:date-picker
+            mode="range"
+            with-presets
+            presets="today yesterday thisWeek lastWeek thisMonth lastMonth yearToDate lastYear allTime"
+            :min="$this->allTimeMin"
+            with-today
+            start-day="1"
+            size="sm"
+            :locale="app()->getLocale()"
+            wire:model.live="dateRange"
+        />
     </div>
 
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
@@ -122,5 +117,20 @@
                 @endforeach
             </flux:table.rows>
         </flux:table>
+
+        <div class="flex mt-2">
+            <flux:field class="ml-auto">
+                <div class="flex items-center">
+                    <flux:label class="text-nowrap mr-4 text-xs">{{ __('Per Page') }}</flux:label>
+
+                    <flux:select variant="listbox" wire:model.live="perPage" size="xs">
+                        <flux:select.option value="10">10</flux:select.option>
+                        <flux:select.option value="25">25</flux:select.option>
+                        <flux:select.option value="50">50</flux:select.option>
+                        <flux:select.option value="100">100</flux:select.option>
+                    </flux:select>
+                </div>
+            </flux:field>
+        </div>
     </div>
 </div>

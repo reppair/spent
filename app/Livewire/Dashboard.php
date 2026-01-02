@@ -26,6 +26,9 @@ class Dashboard extends Component
     #[Session]
     public ?DateRange $dateRange = null;
 
+    #[Session]
+    public int $perPage = 10;
+
     public function mount(): void
     {
         $savedGroups = $this->user->settings['dashboard_selected_groups'] ?? null;
@@ -97,7 +100,7 @@ class Dashboard extends Component
             ->whereIn('group_id', $this->selectedGroups)
             ->whereBetween('created_at', $this->dateRange)
             ->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate();
+            ->paginate($this->perPage);
     }
 
     public function render(): View
