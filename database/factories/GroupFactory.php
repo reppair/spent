@@ -18,7 +18,7 @@ class GroupFactory extends Factory
     {
         return [
             'name' => fake()->words(2, true),
-            'currency' => config('app.default_currency'),
+            'currency' => config('app.currency'),
         ];
     }
 }

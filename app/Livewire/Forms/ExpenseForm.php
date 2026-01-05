@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Livewire\Forms;
+
+use App\Currency;
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Validate;
+use Livewire\Form;
+
+class ExpenseForm extends Form
+{
+    #[Validate]
+    public int $user_id;
+
+    #[Validate]
+    public string $amount = '';
+
+    #[Validate]
+    public Currency $currency;
+
+    #[Validate]
+    public int $category_id;
+
+    #[Validate]
+    public int $group_id;
+
+    #[Validate]
+    public string $note = '';
+
+    public function rules(): array
+    {
+        return [
+            'user_id' => ['required', 'integer', Rule::exists(User::class, 'id')],
+            'amount' => ['required', 'numeric', 'decimal:2', 'min:0.01'],
+            'currency' => ['required', Rule::enum(Currency::class)],
+            'category_id' => [
+                'required', 'integer',
+                Rule::exists(Category::class, 'id')->where('group_id', $this->group_id),
+            ],
+            'group_id' => [
+                'required', 'integer',
+                Rule::exists('group_user')->where('user_id', $this->user_id),
+            ],
+            'note' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    public function updated($property): void
+    {
+        if ($property === 'amount' && $this->amount !== '') {
+            $this->amount = str($this->amount)->replace(',', '.');
+            if (is_numeric($this->amount)) {
+                $this->amount = number_format($this->amount, 2, '.', '');
+            }
+        }
+    }
+}

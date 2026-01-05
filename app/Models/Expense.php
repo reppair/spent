@@ -41,6 +41,14 @@ class Expense extends Model
 
     protected function formattedAmount(): Attribute
     {
-        return Attribute::get(fn () => $this->currency->sign().number_format($this->amount / 100, 2));
+        return Attribute::get(fn () => $this->currency->sign().number_format($this->amount, 2));
+    }
+
+    protected function amount(): Attribute
+    {
+        return Attribute::make(
+            get: fn (int $value) => $value / 100,
+            set: fn (string $value) => $value * 100,
+        );
     }
 }

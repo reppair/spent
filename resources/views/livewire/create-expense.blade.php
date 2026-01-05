@@ -1,0 +1,111 @@
+<div>
+    <form wire:submit="saveExpense" class="mt-6 space-y-6">
+        <!-- Amount and Currency -->
+        <flux:input.group :label="__('Amount')" name="expenseForm.amount" wire:model.blur="expenseForm.amount">
+            <flux:input
+                inputmode="decimal"
+                step="0.01"
+                autofocus
+                placeholder="19.99"
+                wire:model.blur="expenseForm.amount"
+            />
+
+            <flux:select
+                variant="listbox"
+                class="max-w-fit"
+                wire:model.blur="expenseForm.currency"
+            >
+                @foreach($this->currencies as $currency)
+                    <flux:select.option :value="$currency->value" :label="$currency->value" />
+                @endforeach
+            </flux:select>
+        </flux:input.group>
+
+        <!-- Category -->
+        <flux:select
+            variant="listbox"
+            :label="__('Category')"
+            wire:model.change="expenseForm.category_id"
+            wire:key="categories_for_group_{{ $this->expenseForm->group_id }}"
+        >
+            @foreach ($this->categories as $category)
+                <flux:select.option :wire:key="'category_' . $category->id" :value="$category->id" :label="$category->name" />
+            @endforeach
+
+            <flux:select.option.create modal="create-category">{{ __('New category') }}</flux:select.option.create>
+        </flux:select>
+
+        <!-- Group -->
+        <flux:select
+            variant="listbox"
+            :label="__('Group')"
+            wire:model.change="expenseForm.group_id"
+        >
+            @foreach($this->groups as $group)
+                <flux:select.option :wire:key="'group_' . $group->id" :value="$group->id" :label="$group->name" />
+            @endforeach
+
+            <flux:select.option.create modal="create-group">{{ __('New group') }}</flux:select.option.create>
+        </flux:select>
+
+        <!-- Note -->
+        <flux:textarea
+            :label="__('Note')"
+            :placeholder="__('Fruits and veggies...')"
+            rows="auto"
+            resize="vertical"
+            wire:model.change="expenseForm.note"
+        />
+
+        <!-- Actions -->
+        <div class="flex">
+            <flux:spacer />
+
+            <flux:button type="submit" variant="primary">{{ __('Create') }}</flux:button>
+        </div>
+    </form>
+
+    <!-- Create Category Modal -->
+    <flux:modal name="create-category" class="md:w-96">
+        <form wire:submit="createCategory" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Create new category') }}</flux:heading>
+                <flux:text class="mt-2">{{ __('Enter the name of the new category.') }}</flux:text>
+            </div>
+
+            <flux:input
+                wire:model="categoryFrom.name"
+                :label="__('Name')"
+                placeholder="e.g. 'Hardware Store'"
+                autofocus
+            />
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">{{ __('Create') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <!-- Create Group Modal -->
+    <flux:modal name="create-group" class="md:w-96">
+        <form wire:submit="createGroup" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Create new group') }}</flux:heading>
+                <flux:text class="mt-2">{{ __('Enter the name of the new group.') }}</flux:text>
+            </div>
+
+            <flux:input
+                wire:model="groupFrom.name"
+                :label="__('Name')"
+                placeholder="e.g. 'Household'"
+                autofocus
+            />
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">{{ __('Create') }}</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+</div>

@@ -23,8 +23,8 @@ class ExpenseFactory extends Factory
             'group_id' => Group::factory(),
             'user_id' => User::factory(),
             'category_id' => Category::factory(),
-            'amount' => fake()->numberBetween(100, 50000),
-            'currency' => config('app.default_currency'),
+            'amount' => fake()->randomFloat(2, 1, 500),
+            'currency' => config('app.currency'),
             'note' => fake()->optional(0.3)->sentence(),
         ];
     }

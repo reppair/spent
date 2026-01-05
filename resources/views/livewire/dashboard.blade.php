@@ -1,4 +1,4 @@
-<div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+<div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl mb-12 md:mb-0">
     <div class="flex items-center">
         <flux:dropdown>
             <flux:button size="sm" icon:trailing="chevron-down">{{ $this->selectedGroupsLabel }}</flux:button>
@@ -13,6 +13,30 @@
         </flux:dropdown>
 
         <flux:spacer/>
+
+        <!-- Create Expense Modal Triggers -->
+        <flux:modal.trigger name="create-expense">
+            <div class="fixed bottom-4 right-4 z-50">
+                <flux:button icon:trailing="banknotes" variant="primary" class="md:hidden mr-4" square />
+            </div>
+
+            <flux:button icon:trailing="banknotes" variant="primary" size="sm" class="!hidden md:!inline-flex mr-4">
+                {{ __('Spent') }}
+            </flux:button>
+        </flux:modal.trigger>
+
+        <!-- Create Expense Modal -->
+        <flux:modal name="create-expense" class="md:w-96">
+            <div>
+                <flux:heading size="lg">{{ __('Create Expense') }}</flux:heading>
+                <flux:text class="mt-2">{{ __('How much did you spend and on what?') }}</flux:text>
+            </div>
+
+            <livewire:create-expense
+                :user="$this->user"
+                :groups="$this->groups"
+            />
+        </flux:modal>
 
         <flux:date-picker
             mode="range"
@@ -119,18 +143,20 @@
         </flux:table>
 
         <div class="flex mt-2">
-            <flux:field class="ml-auto">
+            <flux:field>
                 <div class="flex items-center">
-                    <flux:label class="text-nowrap mr-4 text-xs">{{ __('Per Page') }}</flux:label>
-
                     <flux:select variant="listbox" wire:model.live="perPage" size="xs">
                         <flux:select.option value="10">10</flux:select.option>
                         <flux:select.option value="25">25</flux:select.option>
                         <flux:select.option value="50">50</flux:select.option>
                         <flux:select.option value="100">100</flux:select.option>
                     </flux:select>
+
+                    <flux:label class="text-nowrap ml-4 text-xs">{{ __('Per Page') }}</flux:label>
                 </div>
             </flux:field>
+
+            <flux:spacer />
         </div>
     </div>
 </div>

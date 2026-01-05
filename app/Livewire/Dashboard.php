@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Session;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -101,6 +102,12 @@ class Dashboard extends Component
             ->whereBetween('created_at', $this->dateRange)
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
+    }
+
+    #[On('expense-created')]
+    public function bustExpenses(): void
+    {
+        unset($this->expenses);
     }
 
     public function render(): View

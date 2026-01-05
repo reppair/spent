@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('category_id')->nullable()->constrained();
             $table->integer('amount');
-            $table->string('currency', 3)->default(config('app.default_currency'));
-            $table->text('note')->nullable();
+            $table->string('currency', 3)->default(config('app.currency'));
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }

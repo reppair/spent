@@ -19,7 +19,7 @@ class CategoryFactory extends Factory
     {
         return [
             'group_id' => Group::factory(),
-            'name' => fake()->word(),
+            'name' => fake()->unique()->word(),
         ];
     }
 }

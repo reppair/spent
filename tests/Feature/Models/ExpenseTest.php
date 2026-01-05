@@ -13,7 +13,7 @@ it('can be created with factory', function () {
 
     expect($expense)->toBeInstanceOf(Expense::class)
         ->and($expense->id)->toBeInt()
-        ->and($expense->amount)->toBeInt();
+        ->and($expense->amount)->toBeFloat();
 });
 
 it('belongs to a group', function () {
@@ -42,10 +42,26 @@ it('belongs to a category', function () {
         ->and($expense->category->id)->toBe($category->id);
 });
 
-it('stores amount in cents', function () {
-    $expense = Expense::factory()->create(['amount' => 1234]);
+it('stores amount in cents and retrieves as decimal', function () {
+    $expense = Expense::factory()->create(['amount' => 12.34]);
 
-    expect($expense->amount)->toBe(1234);
+    expect($expense->amount)->toBe(12.34)
+        ->and((int) $expense->getRawOriginal('amount'))->toBe(1234);
+});
+
+it('converts decimal amount to cents when setting', function () {
+    $expense = new Expense;
+
+    $expense->amount = 25.50;
+
+    expect($expense->getAttributes()['amount'])->toBe(2550.0);
+});
+
+it('converts cents to decimal when getting', function () {
+    $expense = Expense::factory()->create(['amount' => 75.25]);
+
+    expect($expense->amount)->toBe(75.25)
+        ->and((int) $expense->getRawOriginal('amount'))->toBe(7525);
 });
 
 it('has nullable note', function () {
@@ -59,7 +75,7 @@ it('has nullable note', function () {
 it('has currency with default value', function () {
     $expense = Expense::factory()->create();
 
-    expect($expense->currency)->toBe(config('app.default_currency'));
+    expect($expense->currency)->toBe(config('app.currency'));
 });
 
 it('has fillable attributes', function () {
@@ -71,18 +87,18 @@ it('has fillable attributes', function () {
         'group_id' => $group->id,
         'user_id' => $user->id,
         'category_id' => $category->id,
-        'amount' => 5000,
+        'amount' => 50.00,
         'note' => 'Lunch',
     ]);
 
-    expect($expense->amount)->toBe(5000)
+    expect($expense->amount)->toEqual(50.00)
         ->and($expense->note)->toBe('Lunch')
         ->and($expense->group_id)->toBe($group->id);
 });
 
 it('returns formatted amount with currency sign', function () {
     $expense = Expense::factory()->create([
-        'amount' => 1234,
+        'amount' => 12.34,
         'currency' => Currency::EUR,
     ]);
 
@@ -91,7 +107,7 @@ it('returns formatted amount with currency sign', function () {
 
 it('formats amount with USD sign', function () {
     $expense = Expense::factory()->create([
-        'amount' => 9999,
+        'amount' => 99.99,
         'currency' => Currency::USD,
     ]);
 
