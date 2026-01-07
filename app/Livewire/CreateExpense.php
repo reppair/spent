@@ -11,6 +11,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CreateExpense extends Component
@@ -71,6 +72,8 @@ class CreateExpense extends Component
 
     public function saveExpense(): void
     {
+        // No authorization needed due to user_id (not part of user input)
+        // validation in the form object, just create the Expense record
         Expense::create($this->expenseForm->validate());
 
         $this->reset('expenseForm.amount');
@@ -79,6 +82,13 @@ class CreateExpense extends Component
         Flux::modal('create-expense')->close();
 
         $this->dispatch('expense-created');
+    }
+
+    #[On('category-created')]
+    public function onCategoryCreated(int $categoryId): void
+    {
+        unset($this->categories);
+        $this->expenseForm->category_id = $categoryId;
     }
 
     public function render(): View

@@ -56,7 +56,10 @@ class User extends Authenticatable
 
     public function groups(): BelongsToMany
     {
-        return $this->belongsToMany(Group::class)->withPivot('role')->withTimestamps();
+        return $this->belongsToMany(Group::class)
+            ->using(GroupUser::class)
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function expenses(): HasMany

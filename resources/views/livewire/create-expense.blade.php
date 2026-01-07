@@ -65,27 +65,7 @@
         </div>
     </form>
 
-    <!-- Create Category Modal -->
-    <flux:modal name="create-category" class="md:w-96">
-        <form wire:submit="createCategory" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ __('Create new category') }}</flux:heading>
-                <flux:text class="mt-2">{{ __('Enter the name of the new category.') }}</flux:text>
-            </div>
-
-            <flux:input
-                wire:model="categoryFrom.name"
-                :label="__('Name')"
-                placeholder="e.g. 'Hardware Store'"
-                autofocus
-            />
-
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">{{ __('Create') }}</flux:button>
-            </div>
-        </form>
-    </flux:modal>
+    <livewire:create-category wire:key="category_modal_{{ $expenseForm->group_id }}" :group-id="$expenseForm->group_id" :groups="$groups" />
 
     <!-- Create Group Modal -->
     <flux:modal name="create-group" class="md:w-96">
