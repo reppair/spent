@@ -22,7 +22,7 @@ class ExpenseForm extends Form
     public Currency $currency;
 
     #[Validate]
-    public int $category_id;
+    public ?int $category_id = null;
 
     #[Validate]
     public int $group_id;
@@ -37,7 +37,7 @@ class ExpenseForm extends Form
             'amount' => ['required', 'numeric', 'decimal:2', 'min:0.01'],
             'currency' => ['required', Rule::enum(Currency::class)],
             'category_id' => [
-                'required', 'integer',
+                'nullable', 'integer',
                 Rule::exists(Category::class, 'id')->where('group_id', $this->group_id),
             ],
             'group_id' => [

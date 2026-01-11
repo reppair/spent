@@ -51,7 +51,7 @@ class CreateExpense extends Component
     protected function selectCategory(): void
     {
         // todo: init from the category with most expenses
-        $this->expenseForm->category_id = $this->categories->first()->id;
+        $this->expenseForm->category_id = $this->categories->first()?->id;
     }
 
     /**
@@ -89,6 +89,15 @@ class CreateExpense extends Component
     {
         unset($this->categories);
         $this->expenseForm->category_id = $categoryId;
+    }
+
+    #[On('group-created')]
+    public function onGroupCreated(int $groupId): void
+    {
+        $this->groups = auth()->user()->groups;
+        $this->expenseForm->group_id = $groupId;
+        $this->expenseForm->category_id = null;
+        unset($this->categories);
     }
 
     public function render(): View

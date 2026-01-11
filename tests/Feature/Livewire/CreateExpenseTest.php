@@ -50,6 +50,15 @@ describe('mount', function () {
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
             ->assertSet('expenseForm.category_id', $firstCategory->id);
     });
+
+    it('sets category_id to null when group has no categories', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(); // No categories
+        $user->groups()->attach($group);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->assertSet('expenseForm.category_id', null);
+    });
 });
 
 describe('group selection', function () {
@@ -64,6 +73,18 @@ describe('group selection', function () {
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
             ->set('expenseForm.group_id', $group2->id)
             ->assertSet('expenseForm.category_id', $group2FirstCategory->id);
+    });
+
+    it('clears category_id when switching to group with no categories', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->hasCategories(2)->create();
+        $group2 = Group::factory()->create(); // No categories
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->assertSet('expenseForm.category_id', Category::whereGroupId($group1->id)->first()->id)
+            ->set('expenseForm.group_id', $group2->id)
+            ->assertSet('expenseForm.category_id', null);
     });
 
     it('categories computed returns only categories for selected group', function () {
@@ -205,6 +226,17 @@ describe('validation', function () {
             ->assertHasErrors(['expenseForm.group_id']);
     });
 
+    it('allows category to be null (uncategorized)', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(); // No categories
+        $user->groups()->attach($group);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->set('expenseForm.amount', '10.00')
+            ->call('saveExpense')
+            ->assertHasNoErrors(['expenseForm.category_id']);
+    });
+
     it('allows note to be empty', function () {
         $user = User::factory()->create();
         $group = Group::factory()->hasCategories(1)->create();
@@ -248,6 +280,25 @@ describe('saveExpense', function () {
             'category_id' => $category->id,
             'amount' => 2550,
             'note' => 'Test expense',
+        ]);
+    });
+
+    it('creates uncategorized expense when category_id is null', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->create(); // No categories
+        $user->groups()->attach($group);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->set('expenseForm.amount', '15.00')
+            ->set('expenseForm.note', 'Uncategorized expense')
+            ->call('saveExpense');
+
+        $this->assertDatabaseHas('expenses', [
+            'user_id' => $user->id,
+            'group_id' => $group->id,
+            'category_id' => null,
+            'amount' => 1500,
+            'note' => 'Uncategorized expense',
         ]);
     });
 
