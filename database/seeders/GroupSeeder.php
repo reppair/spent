@@ -14,7 +14,7 @@ class GroupSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
+        $martin = User::firstOrCreate(
             ['email' => 'martin@blagoev.xyz'],
             [
                 'name' => 'Martin Blagoev',
@@ -23,16 +23,26 @@ class GroupSeeder extends Seeder
             ]
         );
 
+        $lora = User::firstOrCreate(
+            ['email' => 'lora@example.com'],
+            [
+                'name' => 'Lora A',
+                'password' => bcrypt('password'),
+                'created_at' => now()->subMonths(6),
+            ]
+        );
+
         $group = Group::firstOrCreate(['name' => 'Personal']);
 
         $group->users()->syncWithoutDetaching([
-            $user->id => ['role' => Role::Admin],
+            $martin->id => ['role' => Role::Admin],
         ]);
 
         $group = Group::firstOrCreate(['name' => 'Household']);
 
         $group->users()->syncWithoutDetaching([
-            $user->id => ['role' => Role::Admin],
+            $martin->id => ['role' => Role::Admin],
+            $lora->id => ['role' => Role::Member],
         ]);
     }
 }

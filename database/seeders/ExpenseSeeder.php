@@ -14,45 +14,54 @@ class ExpenseSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::where('email', 'martin@blagoev.xyz')->first();
+        $martin = User::where('email', 'martin@blagoev.xyz')->first();
+        $lora = User::where('email', 'lora@example.com')->first();
 
-        if (! $user) {
+        if (! $martin) {
             return;
         }
 
-        $groups = [
-            'Personal' => 25,
-            'Household' => 25,
-        ];
-
         $monthsBack = 6;
 
-        foreach ($groups as $groupName => $expensesPerMonth) {
-            $group = $user->groups()->where('name', $groupName)->first();
+        // Personal group - only Martin
+        $personalGroup = $martin->groups()->where('name', 'Personal')->first();
 
-            if (! $group) {
-                continue;
+        if ($personalGroup) {
+            $this->seedExpensesForUser($martin, $personalGroup, 25, $monthsBack);
+        }
+
+        // Household group - Martin and Lora
+        $householdGroup = $martin->groups()->where('name', 'Household')->first();
+
+        if ($householdGroup) {
+            $this->seedExpensesForUser($martin, $householdGroup, 25, $monthsBack);
+
+            if ($lora) {
+                $this->seedExpensesForUser($lora, $householdGroup, 25, $monthsBack);
             }
+        }
+    }
 
-            $categories = $group->categories;
+    private function seedExpensesForUser(User $user, $group, int $expensesPerMonth, int $monthsBack): void
+    {
+        $categories = $group->categories;
 
-            for ($month = 0; $month < $monthsBack; $month++) {
-                $startOfMonth = Carbon::now()->subMonths($month)->startOfMonth();
-                $endOfMonth = Carbon::now()->subMonths($month)->endOfMonth();
+        for ($month = 0; $month < $monthsBack; $month++) {
+            $startOfMonth = Carbon::now()->subMonths($month)->startOfMonth();
+            $endOfMonth = Carbon::now()->subMonths($month)->endOfMonth();
 
-                for ($i = 0; $i < $expensesPerMonth; $i++) {
-                    $randomDate = Carbon::createFromTimestamp(
-                        fake()->numberBetween($startOfMonth->timestamp, $endOfMonth->timestamp)
-                    );
+            for ($i = 0; $i < $expensesPerMonth; $i++) {
+                $randomDate = Carbon::createFromTimestamp(
+                    fake()->numberBetween($startOfMonth->timestamp, $endOfMonth->timestamp)
+                );
 
-                    Expense::factory()->create([
-                        'group_id' => $group->id,
-                        'user_id' => $user->id,
-                        'category_id' => $categories->random()->id,
-                        'created_at' => $randomDate,
-                        'updated_at' => $randomDate,
-                    ]);
-                }
+                Expense::factory()->create([
+                    'group_id' => $group->id,
+                    'user_id' => $user->id,
+                    'category_id' => $categories->random()->id,
+                    'created_at' => $randomDate,
+                    'updated_at' => $randomDate,
+                ]);
             }
         }
     }
