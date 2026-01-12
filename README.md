@@ -29,11 +29,10 @@ A personal expense tracking application. Organize your spending by groups (e.g.,
 - **Auth:** Laravel Fortify
 - **Testing:** Pest 4
 
-## Todos
+## Todos 
 - Add timezone and locale user settings for UI and time localization
 - Invite people to a shared group via their email (existing app users)
 - Invite people to a shared group via their email (non app users - email invite to register)
 - Update/delete expenses
-- Group CRUD
-- Group Categories CRUD
-- Pie chart with spendings per category in a group
+- Group and Category CRUDs (dedicated pages with further metrics)
+- Integrate Frankfurter API for exchange rates and store them along with the final calculated amount in group currency

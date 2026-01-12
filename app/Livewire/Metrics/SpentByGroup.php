@@ -2,14 +2,14 @@
 
 namespace App\Livewire\Metrics;
 
-use App\Models\Category;
 use App\Models\Expense;
+use App\Models\Group;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
 use Livewire\Attributes\Computed;
 
-class SpentByCategory extends DashboardMetric
+class SpentByGroup extends DashboardMetric
 {
     #[Computed(persist: true)]
     public function stats(): Collection
@@ -18,37 +18,37 @@ class SpentByCategory extends DashboardMetric
             return collect();
         }
 
-        // Get all expenses grouped by category with totals
+        // Get all expenses grouped by group with totals
         $stats = Expense::query()
             ->whereIn('group_id', $this->selectedGroups)
             ->whereBetween('created_at', $this->dateRange)
-            ->selectRaw('category_id, SUM(amount) as total, currency')
-            ->groupBy('category_id', 'currency')
+            ->selectRaw('group_id, SUM(amount) as total, currency')
+            ->groupBy('group_id', 'currency')
             ->get();
 
         if ($stats->isEmpty()) {
             return collect();
         }
 
-        // Calculate grand total across all categories
+        // Calculate grand total across all groups
         $grandTotal = $stats->sum('total');
 
         if ($grandTotal == 0) {
             return collect();
         }
 
-        // Group by category and calculate percentages
-        $grouped = $stats->groupBy('category_id')->map(function ($group) use ($grandTotal) {
-            $categoryTotal = $group->sum('total');
+        // Group by group and calculate percentages
+        $grouped = $stats->groupBy('group_id')->map(function ($group) use ($grandTotal) {
+            $groupTotal = $group->sum('total');
             $expense = $group->first();
-            $category = Category::find($expense->category_id);
+            $groupModel = Group::find($expense->group_id);
             $currency = $expense->currency;
 
             return (object) [
-                'name' => $category?->name ?? __('Uncategorized'),
-                'total' => $categoryTotal,
-                'formatted_amount' => Number::currency($categoryTotal, $currency->value, app()->getLocale()),
-                'percentage' => (int) round(($categoryTotal / $grandTotal) * 100),
+                'name' => $groupModel->name,
+                'total' => $groupTotal,
+                'formatted_amount' => Number::currency($groupTotal, $currency->value, app()->getLocale()),
+                'percentage' => (int) round(($groupTotal / $grandTotal) * 100),
             ];
         });
 
@@ -58,6 +58,6 @@ class SpentByCategory extends DashboardMetric
 
     public function render(): View
     {
-        return view('livewire.metrics.spent-by-category');
+        return view('livewire.metrics.spent-by-group');
     }
 }

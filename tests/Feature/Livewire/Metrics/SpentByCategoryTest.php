@@ -11,14 +11,14 @@ use function Pest\Livewire\livewire;
 
 uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-describe('categoryStats', function () {
+describe('stats', function () {
     it('returns empty collection when no groups selected', function () {
         $component = livewire(SpentByCategory::class, [
             'selectedGroups' => [],
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        expect($component->get('categoryStats'))->toBeEmpty();
+        expect($component->get('stats'))->toBeEmpty();
     });
 
     it('returns empty collection when no expenses exist', function () {
@@ -31,7 +31,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        expect($component->get('categoryStats'))->toBeEmpty();
+        expect($component->get('stats'))->toBeEmpty();
     });
 
     it('calculates stats for single category', function () {
@@ -47,7 +47,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats)->toHaveCount(1)
             ->and($stats->first()->name)->toBe($category->name)
@@ -71,7 +71,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats)->toHaveCount(2)
             ->and($stats->first()->name)->toBe('Food')
@@ -96,7 +96,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats)->toHaveCount(2)
             ->and($stats->pluck('name')->toArray())->toContain(__('Uncategorized'));
@@ -119,7 +119,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats)->toHaveCount(1)
             ->and($stats->first()->name)->toBe($category1->name)
@@ -149,7 +149,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats)->toHaveCount(1)
             ->and($stats->first()->total)->toBe(5000); // Only this month's expense (cents)
@@ -173,7 +173,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats->pluck('name')->toArray())->toBe(['High', 'Medium', 'Low']);
     });
@@ -194,7 +194,7 @@ describe('categoryStats', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats = $component->get('categoryStats');
+        $stats = $component->get('stats');
 
         expect($stats->first()->formatted_amount)->toBe('$12,345.00');
     });
@@ -219,7 +219,7 @@ describe('reactivity', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats1 = $component1->get('categoryStats');
+        $stats1 = $component1->get('stats');
 
         expect($stats1)->toHaveCount(1)
             ->and($stats1->first()->name)->toBe($category1->name)
@@ -231,7 +231,7 @@ describe('reactivity', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats2 = $component2->get('categoryStats');
+        $stats2 = $component2->get('stats');
 
         expect($stats2)->toHaveCount(1)
             ->and($stats2->first()->name)->toBe($category2->name)
@@ -262,7 +262,7 @@ describe('reactivity', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        expect($component1->get('categoryStats')->first()->total)->toBe(5000); // cents
+        expect($component1->get('stats')->first()->total)->toBe(5000); // cents
 
         // Test with last month
         $component2 = livewire(SpentByCategory::class, [
@@ -270,12 +270,12 @@ describe('reactivity', function () {
             'dateRange' => DateRange::lastMonth(),
         ]);
 
-        expect($component2->get('categoryStats')->first()->total)->toBe(3000); // cents
+        expect($component2->get('stats')->first()->total)->toBe(3000); // cents
     });
 });
 
 describe('caching', function () {
-    it('persists categoryStats between requests with same filters', function () {
+    it('persists stats between requests with same filters', function () {
         $user = User::factory()->create();
         $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
@@ -289,7 +289,7 @@ describe('caching', function () {
         ]);
 
         // First request - compute stats
-        $firstStats = $component->get('categoryStats');
+        $firstStats = $component->get('stats');
         expect($firstStats)->toHaveCount(1)
             ->and($firstStats->first()->total)->toBe(10000);
 
@@ -297,7 +297,7 @@ describe('caching', function () {
         $component->call('$refresh');
 
         // Stats should still be correct (whether from cache or recomputed)
-        $secondStats = $component->get('categoryStats');
+        $secondStats = $component->get('stats');
         expect($secondStats)->toHaveCount(1)
             ->and($secondStats->first()->total)->toBe(10000);
     });
@@ -320,7 +320,7 @@ describe('caching', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats1 = $component1->get('categoryStats');
+        $stats1 = $component1->get('stats');
         $checksum1 = $component1->get('filterChecksum');
 
         expect($stats1)->toHaveCount(1)
@@ -333,7 +333,7 @@ describe('caching', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats2 = $component2->get('categoryStats');
+        $stats2 = $component2->get('stats');
         $checksum2 = $component2->get('filterChecksum');
 
         expect($stats2)->toHaveCount(1)
@@ -364,7 +364,7 @@ describe('caching', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        $stats1 = $component1->get('categoryStats');
+        $stats1 = $component1->get('stats');
         $checksum1 = $component1->get('filterChecksum');
 
         expect($stats1)->toHaveCount(1)
@@ -376,7 +376,7 @@ describe('caching', function () {
             'dateRange' => DateRange::lastMonth(),
         ]);
 
-        $stats2 = $component2->get('categoryStats');
+        $stats2 = $component2->get('stats');
         $checksum2 = $component2->get('filterChecksum');
 
         expect($stats2)->toHaveCount(1)
@@ -394,8 +394,8 @@ describe('caching', function () {
             'dateRange' => DateRange::thisMonth(),
         ]);
 
-        // Access categoryStats to trigger computation
-        $component->get('categoryStats');
+        // Access stats to trigger computation
+        $component->get('stats');
 
         // The filterChecksum should be set after the request
         expect($component->get('filterChecksum'))->not->toBeEmpty();
@@ -455,7 +455,7 @@ describe('caching', function () {
         ]);
 
         // First request - compute stats
-        $firstStats = $component->get('categoryStats');
+        $firstStats = $component->get('stats');
         expect($firstStats)->toHaveCount(1)
             ->and($firstStats->first()->total)->toBe(10000);
 
@@ -466,7 +466,7 @@ describe('caching', function () {
         $component->dispatch('expense-created');
 
         // Stats should now include the new expense
-        $secondStats = $component->get('categoryStats');
+        $secondStats = $component->get('stats');
         expect($secondStats)->toHaveCount(1)
             ->and($secondStats->first()->total)->toBe(15000); // 100 + 50 = 150 dollars (15000 cents)
     });

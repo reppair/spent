@@ -52,25 +52,17 @@
     </div>
 
     <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <!-- By category (for selected period and group) -->
-        <livewire:metrics.spent-by-category
+        <!-- By Group -->
+        <livewire:metrics.spent-by-group
             :selected-groups="$selectedGroups"
             :date-range="$dateRange"
         />
 
-        <!-- Spent in Group (for selected period and group) -->
-        <flux:card class="overflow-hidden min-w-[12rem]">
-            <flux:text>Spent (Personal)</flux:text>
-
-            <flux:heading size="xl" class="mt-2 tabular-nums">$12,345</flux:heading>
-
-            <flux:chart class="-mx-8 -mb-8 h-[3rem]" :value="[10, 12, 11, 13, 15, 14, 16, 18, 17, 19, 21, 20]">
-                <flux:chart.svg gutter="0">
-                    <flux:chart.line class="text-sky-200 dark:text-sky-400"/>
-                    <flux:chart.area class="text-sky-100 dark:text-sky-400/30"/>
-                </flux:chart.svg>
-            </flux:chart>
-        </flux:card>
+        <!-- By category -->
+        <livewire:metrics.spent-by-category
+            :selected-groups="$selectedGroups"
+            :date-range="$dateRange"
+        />
 
         <!-- Total Spent (for selected period) -->
         <flux:card class="overflow-hidden min-w-[12rem]">
