@@ -1,26 +1,151 @@
-# Spent
+# Spent — Core Concept (v1)
 
-A personal expense tracking application. Organize your spending by groups (e.g., Personal, Family, Work) and categories (e.g., Food, Gas, Utilities). Track amounts in multiple currencies with powerful filtering and insights.
+## Overview
 
-## Features
+Spent is a personal expense tracking app that helps users see where their money goes, organized into separate pockets for different contexts.
 
-### Dashboard
-- Summary stats cards with sparkline charts
-- Spending by category, group, and total
-- Sortable expense table with pagination
-- Date range picker with presets (today, this week, this month, YTD, etc.)
-- Multi-group filtering
+---
 
-### Expense Management
-- Quick expense entry via modal
-- Organize by groups and categories
-- Multi-currency support (EUR, USD)
-- Optional notes for each expense
-- Amounts stored in cents for precision
+## Pockets
 
-### User Onboarding
-- Default "Personal" group created on registration
-- Pre-seeded categories for the "Personal" expenses group
+A pocket is a container for expenses. Each pocket has its own members, categories, and metrics.
+
+### Personal Pocket
+
+- Auto-created on registration
+- Single member (the user)
+- Cannot be deleted
+- Purpose: default container for general personal expenses
+
+### Custom Pockets
+
+- User-created, user-named
+- Can be solo (just the user) or shared (invite others)
+- Can be archived or deleted
+- Examples:
+    - "Household" — shared with partner
+    - "Hobbies" — solo, separating hobby spending from general personal
+    - "Spain Trip" — temporary, shared with friends
+    - "Car" — solo, isolating vehicle-related costs
+
+---
+
+## Metrics Logic
+
+The dashboard adapts based on pocket membership:
+
+### Solo pocket (1 member)
+
+- Total spent
+- Breakdown by category
+- Spending over time chart
+
+### Shared pocket (2+ members)
+
+- Total spent (combined)
+- Breakdown by category
+- Breakdown by member (who paid what)
+- Spending over time chart
+
+---
+
+## Navigation
+
+Top-level toggle to switch views:
+
+```
+[All]  [Personal]  [Hobbies]  [Household]
+```
+
+- **All**: aggregates everything, shows breakdown by pocket
+- **Single pocket view**: metrics scoped to that pocket
+
+---
+
+## Dashboard Layouts
+
+### All Pockets View
+
+Two-card layout, no category breakdown at this level.
+
+```
+┌─────────────────────────────────────┬───────────────────────────────────┐
+│                                     │                                   │
+│  Your Spending                      │  By Pocket                        │
+│  €1,790.00                          │                                   │
+│                                     │  Personal          €650 (27%)     │
+│  ┌───────────────────────────────┐  │  Hobbies           €320 (13%)     │
+│  │                               │  │  Household       €1,480 (60%)     │
+│  │  📈 Spending over time        │  │    You     €820 (55%)             │
+│  │                               │  │    Lora    €660 (45%)             │
+│  │                               │  │                                   │
+│  └───────────────────────────────┘  │                                   │
+│                                     │                                   │
+└─────────────────────────────────────┴───────────────────────────────────┘
+```
+
+- "Your Spending" shows only what the user spent (sum of user's contributions across all pockets)
+- Chart shows only user's spending over time (not other members' contributions)
+- "By Pocket" shows full pocket totals with member breakdown for shared pockets
+- Tapping a pocket navigates to that pocket's detail view
+- Solo pockets show just the total (no member breakdown needed)
+
+### Single Pocket View (Solo)
+
+```
+┌─────────────────────────────────────┬───────────────────────────────────┐
+│                                     │                                   │
+│  Spent Total                        │  By Category                      │
+│  €650.00                            │                                   │
+│                                     │  Photography       €250 (38%)     │
+│  ┌───────────────────────────────┐  │  Gaming            €180 (28%)     │
+│  │                               │  │  Books             €120 (18%)     │
+│  │  📈 Spending over time        │  │  Other             €100 (16%)     │
+│  │                               │  │                                   │
+│  │                               │  │                                   │
+│  └───────────────────────────────┘  │                                   │
+│                                     │                                   │
+└─────────────────────────────────────┴───────────────────────────────────┘
+```
+
+### Single Pocket View (Shared)
+
+```
+┌───────────────────────────┬──────────────────────┬──────────────────────┐
+│                           │                      │                      │
+│  Spent Total              │  By Member           │  By Category         │
+│  €1,480.00                │                      │                      │
+│                           │  Martin  €820 (55%)  │  Groceries     €420  │
+│  ┌─────────────────────┐  │  Lora    €660 (45%)  │  Bills         €380  │
+│  │                     │  │                      │  Subscriptions €290  │
+│  │  📈 Spending over   │  │                      │  Other         €390  │
+│  │     time            │  │                      │                      │
+│  │                     │  │                      │                      │
+│  └─────────────────────┘  │                      │                      │
+│                           │                      │                      │
+└───────────────────────────┴──────────────────────┴──────────────────────┘
+```
+
+- Three cards: Total + chart, Member breakdown, Category breakdown
+
+---
+
+## Out of Scope (v1)
+
+- Settling up / balance calculations
+- Business expense tracking
+- Bank integrations
+- Budgeting / limits
+
+---
+
+## Future Considerations
+
+- Toggle in "All" view to switch between "Your Spending" and "Total Spending" (includes all members)
+- Temporary pockets (auto-prompt to archive after a date)
+- Settling up and balance tracking
+- Target split ratios
+- Bank account integration
 
 ## Tech Stack
 
