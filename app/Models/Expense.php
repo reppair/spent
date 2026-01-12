@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Number;
 
 class Expense extends Model
 {
@@ -41,7 +42,7 @@ class Expense extends Model
 
     protected function formattedAmount(): Attribute
     {
-        return Attribute::get(fn () => $this->currency->sign().number_format($this->amount, 2));
+        return Attribute::get(fn () => Number::currency($this->amount, $this->currency->value, app()->getLocale()));
     }
 
     protected function amount(): Attribute
