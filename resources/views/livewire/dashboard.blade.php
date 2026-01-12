@@ -128,7 +128,7 @@
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            <flux:badge size="sm" inset="top bottom">{{ $expense->category->name }}</flux:badge>
+                            <flux:badge size="sm" inset="top bottom">{{ $expense->category?->name ?? __('Uncategorized') }}</flux:badge>
                         </flux:table.cell>
 
                         <flux:table.cell
