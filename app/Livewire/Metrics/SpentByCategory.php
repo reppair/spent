@@ -47,7 +47,7 @@ class SpentByCategory extends DashboardMetric
             return (object) [
                 'name' => $category?->name ?? __('Uncategorized'),
                 'total' => $categoryTotal,
-                'formatted_amount' => Number::currency($categoryTotal, $currency->value, app()->getLocale()),
+                'formatted_amount' => Number::currency($categoryTotal / 100, $currency->value, app()->getLocale()),
                 'percentage' => (int) round(($categoryTotal / $grandTotal) * 100),
             ];
         });

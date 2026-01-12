@@ -165,7 +165,7 @@ describe('stats', function () {
 
         $stats = $component->get('stats');
 
-        expect($stats->first()->formatted_amount)->toBe('$12,345.00');
+        expect($stats->first()->formatted_amount)->toBe('$123.45');
     });
 });
 
@@ -303,7 +303,7 @@ describe('user stats', function () {
 
         $stats = $component->get('stats');
 
-        expect($stats->first()->users->first()->formatted_amount)->toBe('$12,345.00');
+        expect($stats->first()->users->first()->formatted_amount)->toBe('$123.45');
     });
 });
 

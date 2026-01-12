@@ -53,12 +53,12 @@ class SpentByGroup extends DashboardMetric
             return (object) [
                 'name' => $group->name,
                 'total' => $groupTotal,
-                'formatted_amount' => Number::currency($groupTotal, $currency->value, app()->getLocale()),
+                'formatted_amount' => Number::currency($groupTotal / 100, $currency->value, app()->getLocale()),
                 'percentage' => (int) round(($groupTotal / $grandTotal) * 100), // Group's % of all spending
                 'users' => $groupStats->map(fn ($stat) => (object) [
                     'name' => $users[$stat->user_id]->name,
                     'total' => $stat->total,
-                    'formatted_amount' => Number::currency($stat->total, $currency->value, app()->getLocale()),
+                    'formatted_amount' => Number::currency($stat->total / 100, $currency->value, app()->getLocale()),
                     'percentage' => (int) round(($stat->total / $groupTotal) * 100), // User's % within THIS group
                 ])->sortByDesc('total')->values(),
             ];

@@ -196,7 +196,7 @@ describe('stats', function () {
 
         $stats = $component->get('stats');
 
-        expect($stats->first()->formatted_amount)->toBe('$12,345.00');
+        expect($stats->first()->formatted_amount)->toBe('$123.45');
     });
 });
 
