@@ -26,13 +26,13 @@ class GroupSeeder extends Seeder
         $group = Group::firstOrCreate(['name' => 'Personal']);
 
         $group->users()->syncWithoutDetaching([
-            $user->id => ['role' => Role::Owner],
+            $user->id => ['role' => Role::Admin],
         ]);
 
         $group = Group::firstOrCreate(['name' => 'Household']);
 
         $group->users()->syncWithoutDetaching([
-            $user->id => ['role' => Role::Owner],
+            $user->id => ['role' => Role::Admin],
         ]);
     }
 }

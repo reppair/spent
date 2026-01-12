@@ -17,7 +17,7 @@ class CreateGroup extends Component
     {
         $group = Group::create($this->groupForm->validate());
 
-        $group->users()->attach(auth()->id(), ['role' => Role::Owner]);
+        $group->users()->attach(auth()->id(), ['role' => Role::Admin]);
 
         $this->reset('groupForm.name');
 

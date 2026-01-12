@@ -69,7 +69,7 @@ describe('createGroup', function () {
         ]);
     });
 
-    it('attaches user as owner', function () {
+    it('attaches user as admin', function () {
         $user = User::factory()->create();
 
         $this->actingAs($user);
@@ -83,7 +83,7 @@ describe('createGroup', function () {
         $this->assertDatabaseHas('group_user', [
             'group_id' => $group->id,
             'user_id' => $user->id,
-            'role' => Role::Owner->value,
+            'role' => Role::Admin->value,
         ]);
     });
 

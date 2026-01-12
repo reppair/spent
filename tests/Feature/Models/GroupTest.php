@@ -26,15 +26,15 @@ it('has many users through pivot', function () {
 
 it('can attach users with role', function () {
     $group = Group::factory()->create();
-    $owner = User::factory()->create();
+    $admin = User::factory()->create();
     $member = User::factory()->create();
 
     $group->users()->attach([
-        $owner->id => ['role' => 'owner'],
+        $admin->id => ['role' => 'admin'],
         $member->id => ['role' => 'member'],
     ]);
 
-    expect($group->users()->wherePivot('role', 'owner')->first()->id)->toBe($owner->id)
+    expect($group->users()->wherePivot('role', 'admin')->first()->id)->toBe($admin->id)
         ->and($group->users()->wherePivot('role', 'member')->first()->id)->toBe($member->id);
 });
 

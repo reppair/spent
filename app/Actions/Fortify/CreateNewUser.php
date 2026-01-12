@@ -42,7 +42,7 @@ class CreateNewUser implements CreatesNewUsers
         // create a default group
         $group = Group::firstOrCreate(['name' => 'Personal']);
 
-        $group->users()->attach($user, ['role' => Role::Owner]);
+        $group->users()->attach($user, ['role' => Role::Admin]);
 
         // and categories
         collect(['Food and Drinks', 'Vehicle Maintenance', 'Gas', 'Other'])

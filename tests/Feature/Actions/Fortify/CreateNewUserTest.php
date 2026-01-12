@@ -35,7 +35,7 @@ it('creates a default group for new user', function () {
     expect($user->groups)->toHaveCount(1);
 });
 
-it('attaches user to group with owner role', function () {
+it('attaches user to group with admin role', function () {
     $action = new CreateNewUser;
 
     $user = $action->create([
@@ -47,7 +47,7 @@ it('attaches user to group with owner role', function () {
 
     $pivot = $user->groups->first()->pivot;
 
-    expect($pivot->role)->toBe(Role::Owner->value);
+    expect($pivot->role)->toBe(Role::Admin->value);
 });
 
 it('creates default categories for the group', function () {

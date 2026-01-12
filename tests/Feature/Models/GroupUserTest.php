@@ -9,7 +9,7 @@ uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 it('uses GroupUser pivot model for user groups relationship', function () {
     $user = User::factory()->create();
     $group = Group::factory()->create();
-    $user->groups()->attach($group, ['role' => 'owner']);
+    $user->groups()->attach($group, ['role' => 'admin']);
 
     $pivot = $user->groups->first()->pivot;
 
