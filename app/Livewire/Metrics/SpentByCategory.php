@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
@@ -40,6 +41,12 @@ class SpentByCategory extends Component
     protected function getFilterChecksum(): string
     {
         return md5(json_encode([$this->selectedGroups, $this->dateRange->start(), $this->dateRange->end()]));
+    }
+
+    #[On('expense-created')]
+    public function onExpenseCreated(): void
+    {
+        unset($this->categoryStats);
     }
 
     #[Computed(persist: true)]

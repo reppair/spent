@@ -439,4 +439,35 @@ describe('caching', function () {
             ->and($checksum1)->not->toBe($checksum3)
             ->and($checksum2)->not->toBe($checksum3);
     });
+
+    it('busts cache when expense-created event is dispatched', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+        $category = Category::whereGroupId($group->id)->first();
+
+        // Create initial expense
+        Expense::factory()->for($user)->for($group)->for($category)->create(['amount' => 100]);
+
+        $component = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        // First request - compute stats
+        $firstStats = $component->get('categoryStats');
+        expect($firstStats)->toHaveCount(1)
+            ->and($firstStats->first()->total)->toBe(10000);
+
+        // Create new expense in the database (simulating expense creation)
+        Expense::factory()->for($user)->for($group)->for($category)->create(['amount' => 50]);
+
+        // Dispatch the expense-created event
+        $component->dispatch('expense-created');
+
+        // Stats should now include the new expense
+        $secondStats = $component->get('categoryStats');
+        expect($secondStats)->toHaveCount(1)
+            ->and($secondStats->first()->total)->toBe(15000); // 100 + 50 = 150 dollars (15000 cents)
+    });
 });
