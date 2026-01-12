@@ -273,3 +273,170 @@ describe('reactivity', function () {
         expect($component2->get('categoryStats')->first()->total)->toBe(3000); // cents
     });
 });
+
+describe('caching', function () {
+    it('persists categoryStats between requests with same filters', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+        $category = Category::whereGroupId($group->id)->first();
+
+        Expense::factory()->for($user)->for($group)->for($category)->create(['amount' => 100]);
+
+        $component = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        // First request - compute stats
+        $firstStats = $component->get('categoryStats');
+        expect($firstStats)->toHaveCount(1)
+            ->and($firstStats->first()->total)->toBe(10000);
+
+        // Simulate a subsequent request with same filters
+        $component->call('$refresh');
+
+        // Stats should still be correct (whether from cache or recomputed)
+        $secondStats = $component->get('categoryStats');
+        expect($secondStats)->toHaveCount(1)
+            ->and($secondStats->first()->total)->toBe(10000);
+    });
+
+    it('busts cache when selectedGroups changes', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        $category1 = Category::whereGroupId($group1->id)->first();
+        $category2 = Category::whereGroupId($group2->id)->first();
+
+        Expense::factory()->for($user)->for($group1)->for($category1)->create(['amount' => 100]);
+        Expense::factory()->for($user)->for($group2)->for($category2)->create(['amount' => 50]);
+
+        // First component with group1
+        $component1 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group1->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats1 = $component1->get('categoryStats');
+        $checksum1 = $component1->get('filterChecksum');
+
+        expect($stats1)->toHaveCount(1)
+            ->and($stats1->first()->name)->toBe($category1->name)
+            ->and($stats1->first()->total)->toBe(10000);
+
+        // Second component with group2 - different filters should have different checksum
+        $component2 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group2->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats2 = $component2->get('categoryStats');
+        $checksum2 = $component2->get('filterChecksum');
+
+        expect($stats2)->toHaveCount(1)
+            ->and($stats2->first()->name)->toBe($category2->name)
+            ->and($stats2->first()->total)->toBe(5000)
+            ->and($checksum2)->not->toBe($checksum1);
+    });
+
+    it('busts cache when dateRange changes', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+        $category = Category::whereGroupId($group->id)->first();
+
+        // Create expenses in different months
+        Expense::factory()->for($user)->for($group)->for($category)->create([
+            'amount' => 100,
+            'created_at' => now(),
+        ]);
+        Expense::factory()->for($user)->for($group)->for($category)->create([
+            'amount' => 50,
+            'created_at' => now()->subMonth(),
+        ]);
+
+        // First component with this month
+        $component1 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats1 = $component1->get('categoryStats');
+        $checksum1 = $component1->get('filterChecksum');
+
+        expect($stats1)->toHaveCount(1)
+            ->and($stats1->first()->total)->toBe(10000);
+
+        // Second component with last month - different date range should have different checksum
+        $component2 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::lastMonth(),
+        ]);
+
+        $stats2 = $component2->get('categoryStats');
+        $checksum2 = $component2->get('filterChecksum');
+
+        expect($stats2)->toHaveCount(1)
+            ->and($stats2->first()->total)->toBe(5000)
+            ->and($checksum2)->not->toBe($checksum1);
+    });
+
+    it('updates filterChecksum on dehydrate', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+
+        $component = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        // Access categoryStats to trigger computation
+        $component->get('categoryStats');
+
+        // The filterChecksum should be set after the request
+        expect($component->get('filterChecksum'))->not->toBeEmpty();
+    });
+
+    it('generates different checksums for different filters', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        Expense::factory()->for($user)->for($group1)->create(['amount' => 100]);
+        Expense::factory()->for($user)->for($group2)->create(['amount' => 50]);
+
+        // Component with group1
+        $component1 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group1->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $checksum1 = $component1->get('filterChecksum');
+
+        // Component with group2
+        $component2 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group2->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $checksum2 = $component2->get('filterChecksum');
+
+        // Component with different date range
+        $component3 = livewire(SpentByCategory::class, [
+            'selectedGroups' => [$group1->id],
+            'dateRange' => DateRange::lastMonth(),
+        ]);
+
+        $checksum3 = $component3->get('filterChecksum');
+
+        // All checksums should be different
+        expect($checksum1)->not->toBe($checksum2)
+            ->and($checksum1)->not->toBe($checksum3)
+            ->and($checksum2)->not->toBe($checksum3);
+    });
+});

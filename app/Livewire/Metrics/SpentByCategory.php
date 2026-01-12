@@ -20,7 +20,29 @@ class SpentByCategory extends Component
     #[Reactive]
     public DateRange $dateRange;
 
-    #[Computed]
+    public string $filterChecksum = '';
+
+    public function hydrate(): void
+    {
+        // Compare filter checksum at the beginning of every "subsequent"
+        // request and clear the category stats cache if not matching.
+        if ($this->filterChecksum !== $this->getFilterChecksum()) {
+            unset($this->categoryStats);
+        }
+    }
+
+    public function dehydrate(): void
+    {
+        // Create a checksum of the filters at the end of every single request.
+        $this->filterChecksum = $this->getFilterChecksum();
+    }
+
+    protected function getFilterChecksum(): string
+    {
+        return md5(json_encode([$this->selectedGroups, $this->dateRange->start(), $this->dateRange->end()]));
+    }
+
+    #[Computed(persist: true)]
     public function categoryStats(): Collection
     {
         if (empty($this->selectedGroups)) {
