@@ -34,8 +34,6 @@ A personal expense tracking application. Organize your spending by groups (e.g.,
 - Invite people to a shared group via their email (existing app users)
 - Invite people to a shared group via their email (non app users - email invite to register)
 - Update/delete expenses
-- Quick add new group from create expense modal
-- Quick add new category from create expense modal
 - Group CRUD
 - Group Categories CRUD
 - Pie chart with spendings per category in a group
