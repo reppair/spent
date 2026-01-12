@@ -4,6 +4,7 @@ use App\Livewire\Dashboard;
 use App\Models\Expense;
 use App\Models\Group;
 use App\Models\User;
+use App\Role;
 use Flux\DateRange;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
@@ -16,7 +17,7 @@ test('guests are redirected to the login page', function () {
 
 test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
-    $group = Group::factory()->hasCategories(1)->create();
+    $group = Group::factory()->hasCategories()->create();
     $user->groups()->attach($group);
 
     $this->actingAs($user)->get('/dashboard')->assertStatus(200);
@@ -25,8 +26,8 @@ test('authenticated users can visit the dashboard', function () {
 describe('selected groups', function () {
     test('selected groups are persisted to user settings', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         Livewire::actingAs($user)
@@ -39,8 +40,8 @@ describe('selected groups', function () {
 
     test('selected groups are loaded from user settings on mount', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
         $user->update(['settings' => ['dashboard_selected_groups' => [$group2->id]]]);
 
@@ -51,8 +52,8 @@ describe('selected groups', function () {
 
     test('defaults to first group when no saved selection exists', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         Livewire::actingAs($user)
@@ -64,7 +65,7 @@ describe('selected groups', function () {
 describe('date range', function () {
     test('defaults to this month when no session exists', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $component = Livewire::actingAs($user)
@@ -79,7 +80,7 @@ describe('date range', function () {
 
     test('can be set to a custom range', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $start = now()->subDays(7)->toDateString();
@@ -96,7 +97,7 @@ describe('date range', function () {
 
     test('can use preset ranges', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $lastMonth = DateRange::lastMonth();
@@ -118,7 +119,7 @@ describe('date range', function () {
 describe('selectedGroupsLabel', function () {
     test('returns "Select a group" when no groups are selected', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -129,7 +130,7 @@ describe('selectedGroupsLabel', function () {
 
     test('returns single group name', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create(['name' => 'Family']);
+        $group = Group::factory()->hasCategories()->create(['name' => 'Family']);
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -140,8 +141,8 @@ describe('selectedGroupsLabel', function () {
 
     test('returns comma-separated names for multiple groups', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create(['name' => 'Family']);
-        $group2 = Group::factory()->hasCategories(1)->create(['name' => 'Work']);
+        $group1 = Group::factory()->hasCategories()->create(['name' => 'Family']);
+        $group2 = Group::factory()->hasCategories()->create(['name' => 'Work']);
         $user->groups()->attach([$group1->id, $group2->id]);
 
         Livewire::actingAs($user)
@@ -153,7 +154,7 @@ describe('selectedGroupsLabel', function () {
     test('truncates long labels', function () {
         $user = User::factory()->create();
         $longName = str_repeat('A', 100);
-        $group = Group::factory()->hasCategories(1)->create(['name' => $longName]);
+        $group = Group::factory()->hasCategories()->create(['name' => $longName]);
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -166,7 +167,7 @@ describe('selectedGroupsLabel', function () {
 describe('sorting', function () {
     test('defaults to created_at descending', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -177,7 +178,7 @@ describe('sorting', function () {
 
     test('toggles direction when sorting same column', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -191,7 +192,7 @@ describe('sorting', function () {
 
     test('sets new column with ascending direction', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Livewire::actingAs($user)
@@ -207,8 +208,8 @@ describe('sorting', function () {
 describe('expenses querying', function () {
     test('returns only expenses from selected groups', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         $expense1 = Expense::factory()->for($user)->for($group1)->create();
@@ -223,8 +224,8 @@ describe('expenses querying', function () {
 
     test('excludes expenses from non-selected groups', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         Expense::factory()->for($user)->for($group1)->create();
@@ -239,7 +240,7 @@ describe('expenses querying', function () {
 
     test('eager loads category relationship', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Expense::factory()->for($user)->for($group)->create();
@@ -253,7 +254,7 @@ describe('expenses querying', function () {
 
     test('respects sort order', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $expense1 = Expense::factory()->for($user)->for($group)->create(['amount' => 100]);
@@ -272,7 +273,7 @@ describe('expenses querying', function () {
 
     test('returns paginated results', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Expense::factory()->for($user)->for($group)->count(20)->create();
@@ -289,7 +290,7 @@ describe('expenses querying', function () {
 
     test('filters expenses by date range', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         // Create expense within this month
@@ -311,7 +312,7 @@ describe('expenses querying', function () {
 
     test('excludes expenses outside the date range', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         // Create expense within this month
@@ -336,7 +337,7 @@ describe('expenses querying', function () {
 
     test('respects custom date range when filtering expenses', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         // Create expense from last month
@@ -365,7 +366,7 @@ describe('expenses querying', function () {
 
     test('uses default date range of this month', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         // Create expense at start of this month
@@ -397,7 +398,7 @@ describe('expenses querying', function () {
 describe('perPage', function () {
     test('defaults to 10 items per page', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Expense::factory()->for($user)->for($group)->count(15)->create();
@@ -418,7 +419,7 @@ describe('perPage', function () {
 
     test('can change items per page', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Expense::factory()->for($user)->for($group)->count(30)->create();
@@ -439,7 +440,7 @@ describe('perPage', function () {
 
     test('respects perPage when fewer items exist', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         Expense::factory()->for($user)->for($group)->count(5)->create();
@@ -464,7 +465,7 @@ describe('allTimeMin', function () {
         $user = User::factory()->create([
             'created_at' => '2024-06-15 10:30:00',
         ]);
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $this->actingAs($user);
@@ -475,10 +476,10 @@ describe('allTimeMin', function () {
     });
 });
 
-describe('bustExpenses', function () {
+describe('expense-created event', function () {
     test('refreshes expenses when expense-created event is dispatched', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $this->actingAs($user);
@@ -497,5 +498,52 @@ describe('bustExpenses', function () {
 
         // Expenses should now include the new one
         expect($component->get('expenses'))->toHaveCount(1);
+    });
+});
+
+describe('group-created event', function () {
+    test('refreshes groups list when group-created event is dispatched', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group, ['role' => Role::Admin]);
+
+        $this->actingAs($user);
+
+        $component = livewire(Dashboard::class);
+
+        // Initially only one group
+        expect($component->get('groups'))->toHaveCount(1);
+
+        // Create a new group and attach to user
+        $newGroup = Group::factory()->create();
+        $user->groups()->attach($newGroup, ['role' => Role::Admin]);
+
+        // Dispatch the event
+        $component->dispatch('group-created', groupId: $newGroup->id);
+
+        // Groups should now include the new one
+        expect($component->get('groups'))->toHaveCount(2)
+            ->and($component->get('groups')->pluck('id')->all())->toContain($newGroup->id);
+    });
+
+    test('sets newly created group as only selected group', function () {
+        $user = User::factory()->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
+        $user->groups()->attach([$group1->id, $group2->id]);
+
+        $this->actingAs($user);
+
+        $component = livewire(Dashboard::class)
+            ->set('selectedGroups', [$group1->id, $group2->id])
+            ->assertSet('selectedGroups', [$group1->id, $group2->id]);
+
+        // Create a new group and dispatch the event
+        $newGroup = Group::factory()->create();
+        $user->groups()->attach($newGroup);
+
+        $component->dispatch('group-created', groupId: $newGroup->id);
+
+        expect($component->get('selectedGroups'))->toBe([$newGroup->id]);
     });
 });

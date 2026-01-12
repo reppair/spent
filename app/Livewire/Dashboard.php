@@ -65,7 +65,7 @@ class Dashboard extends Component
     #[Computed(persist: true)]
     public function groups(): Collection
     {
-        return $this->user->groups;
+        return $this->user->groups()->get();
     }
 
     #[Computed]
@@ -104,8 +104,18 @@ class Dashboard extends Component
             ->paginate($this->perPage);
     }
 
+    #[On('group-created')]
+    public function onGroupCreated(int $groupId): void
+    {
+        // refresh computed and cached groups
+        unset($this->groups);
+
+        // and set the newly created group as the only selected one
+        $this->selectedGroups = [$groupId];
+    }
+
     #[On('expense-created')]
-    public function bustExpenses(): void
+    public function onExpenseCreated(): void
     {
         unset($this->expenses);
     }

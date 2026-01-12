@@ -14,7 +14,7 @@ uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
 describe('mount', function () {
     it('sets user_id from passed user', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -23,7 +23,7 @@ describe('mount', function () {
 
     it('sets currency from app config default', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -32,8 +32,8 @@ describe('mount', function () {
 
     it('sets group_id to first group', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -64,7 +64,7 @@ describe('mount', function () {
 describe('category-created event', function () {
     it('selects new category when category-created event is received', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $newCategory = Category::factory()->for($group)->create(['name' => 'New Category']);
@@ -76,7 +76,7 @@ describe('category-created event', function () {
 
     it('refreshes categories list when category-created event is received', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $component = livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups]);
@@ -210,7 +210,7 @@ describe('formats amount', function () {
 
     it('with trailing zeros', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -220,7 +220,7 @@ describe('formats amount', function () {
 
     it('unchanged when already 2 decimals', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -230,7 +230,7 @@ describe('formats amount', function () {
 
     it('rounds down with more than 2 decimals when third decimal is less than 5', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -240,7 +240,7 @@ describe('formats amount', function () {
 
     it('NOT for empty amount', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -250,7 +250,7 @@ describe('formats amount', function () {
 
     it('converts comma decimal separator to dot', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -262,7 +262,7 @@ describe('formats amount', function () {
 describe('validation', function () {
     it('requires amount', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -273,7 +273,7 @@ describe('validation', function () {
 
     it('requires amount to be numeric', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -284,7 +284,7 @@ describe('validation', function () {
 
     it('requires amount to be at least 0.01', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -295,8 +295,8 @@ describe('validation', function () {
 
     it('requires category to belong to selected group', function () {
         $user = User::factory()->create();
-        $group1 = Group::factory()->hasCategories(1)->create();
-        $group2 = Group::factory()->hasCategories(1)->create();
+        $group1 = Group::factory()->hasCategories()->create();
+        $group2 = Group::factory()->hasCategories()->create();
         $user->groups()->attach([$group1->id, $group2->id]);
 
         $categoryFromOtherGroup = Category::whereGroupId($group2->id)->first();
@@ -311,8 +311,8 @@ describe('validation', function () {
 
     it('requires group to be in user groups', function () {
         $user = User::factory()->create();
-        $userGroup = Group::factory()->hasCategories(1)->create();
-        $otherGroup = Group::factory()->hasCategories(1)->create();
+        $userGroup = Group::factory()->hasCategories()->create();
+        $otherGroup = Group::factory()->hasCategories()->create();
         $user->groups()->attach($userGroup);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -335,7 +335,7 @@ describe('validation', function () {
 
     it('allows note to be empty', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -347,7 +347,7 @@ describe('validation', function () {
 
     it('requires note to be max 255 characters', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -361,7 +361,7 @@ describe('validation', function () {
 describe('saveExpense', function () {
     it('creates expense with form data', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
         $category = Category::whereGroupId($group->id)->first();
 
@@ -400,7 +400,7 @@ describe('saveExpense', function () {
 
     it('resets amount after save', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -411,7 +411,7 @@ describe('saveExpense', function () {
 
     it('resets note after save', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -423,7 +423,7 @@ describe('saveExpense', function () {
 
     it('dispatches expense-created event', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
@@ -453,7 +453,7 @@ describe('saveExpense', function () {
 describe('computed', function () {
     it('currencies returns all Currency cases', function () {
         $user = User::factory()->create();
-        $group = Group::factory()->hasCategories(1)->create();
+        $group = Group::factory()->hasCategories()->create();
         $user->groups()->attach($group);
 
         $component = livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups]);

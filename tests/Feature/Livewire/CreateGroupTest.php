@@ -1,6 +1,5 @@
 <?php
 
-use App\Livewire\CreateExpense;
 use App\Livewire\CreateGroup;
 use App\Models\Group;
 use App\Models\User;

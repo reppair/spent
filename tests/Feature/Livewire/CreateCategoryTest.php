@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\CreateCategory;
-use App\Livewire\CreateExpense;
 use App\Models\Category;
 use App\Models\Group;
 use App\Models\User;
