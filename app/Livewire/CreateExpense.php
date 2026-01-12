@@ -94,7 +94,7 @@ class CreateExpense extends Component
     #[On('group-created')]
     public function onGroupCreated(int $groupId): void
     {
-        $this->groups = auth()->user()->groups;
+        $this->groups = auth()->user()->groups()->get();
         $this->expenseForm->group_id = $groupId;
         $this->expenseForm->category_id = null;
         unset($this->categories);

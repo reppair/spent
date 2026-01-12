@@ -61,6 +61,40 @@ describe('mount', function () {
     });
 });
 
+describe('category-created event', function () {
+    it('selects new category when category-created event is received', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories(1)->create();
+        $user->groups()->attach($group);
+
+        $newCategory = Category::factory()->for($group)->create(['name' => 'New Category']);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->dispatch('category-created', categoryId: $newCategory->id)
+            ->assertSet('expenseForm.category_id', $newCategory->id);
+    });
+
+    it('refreshes categories list when category-created event is received', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories(1)->create();
+        $user->groups()->attach($group);
+
+        $component = livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups]);
+
+        // Access categories to cache them
+        $initialCount = $component->get('categories')->count();
+
+        // Create a new category
+        $newCategory = Category::factory()->for($group)->create(['name' => 'New Category']);
+
+        // Dispatch the event
+        $component->dispatch('category-created', categoryId: $newCategory->id);
+
+        // Categories should now include the new one
+        expect($component->get('categories')->count())->toBe($initialCount + 1);
+    });
+});
+
 describe('group selection', function () {
     it('updates category_id when group changes', function () {
         $user = User::factory()->create();
@@ -98,6 +132,68 @@ describe('group selection', function () {
 
         expect($component->get('categories'))->toHaveCount(3)
             ->and($component->get('categories')->pluck('group_id')->unique()->first())->toBe($group2->id);
+    });
+});
+
+describe('group-created event', function () {
+    it('selects new group when group-created event is received', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+
+        $newGroup = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($newGroup);
+
+        $this->actingAs($user);
+
+        livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups])
+            ->dispatch('group-created', groupId: $newGroup->id)
+            ->assertSet('expenseForm.group_id', $newGroup->id);
+    });
+
+    it('refreshes groups list when group-created event is received', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($group);
+
+        $this->actingAs($user);
+
+        $component = livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups]);
+
+        $initialCount = $component->get('groups')->count();
+
+        // Create a new group and attach user
+        $newGroup = Group::factory()->hasCategories()->create();
+        $user->groups()->attach($newGroup);
+
+        // Dispatch the event
+        $component->dispatch('group-created', groupId: $newGroup->id);
+
+        // Groups should now include the new one
+        expect($component->get('groups')->count())->toBe($initialCount + 1);
+    });
+
+    it('clears category_id when group-created event is received', function () {
+        $user = User::factory()->create();
+        $group = Group::factory()->hasCategories(2)->create();
+        $user->groups()->attach($group);
+
+        $newGroup = Group::factory()->create(); // New group has no categories
+        $user->groups()->attach($newGroup);
+
+        $this->actingAs($user);
+
+        $component = livewire(CreateExpense::class, ['user' => $user, 'groups' => $user->groups]);
+
+        // Initial category is selected
+        expect($component->get('expenseForm.category_id'))->not->toBeNull();
+
+        // Dispatch the event to select the new group
+        $component->dispatch('group-created', groupId: $newGroup->id);
+
+        // Category should be cleared since new group has no categories
+        expect($component->get('expenseForm.category_id'))->toBeNull();
+        expect($component->get('categories')->count())->toBe(0);
     });
 });
 
