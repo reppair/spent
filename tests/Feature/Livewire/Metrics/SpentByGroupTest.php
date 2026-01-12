@@ -169,6 +169,144 @@ describe('stats', function () {
     });
 });
 
+describe('user stats', function () {
+    it('includes user-level stats for single user', function () {
+        $user = User::factory()->create(['name' => 'John Doe']);
+        $group = Group::factory()->create(['name' => 'Personal']);
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->create(['amount' => 100]);
+
+        $component = livewire(SpentByGroup::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats = $component->get('stats');
+
+        expect($stats->first()->users)->toHaveCount(1)
+            ->and($stats->first()->users->first()->name)->toBe('John Doe')
+            ->and($stats->first()->users->first()->total)->toBe(10000)
+            ->and($stats->first()->users->first()->percentage)->toBe(100);
+    });
+
+    it('includes user-level stats for multiple users in same group', function () {
+        $user1 = User::factory()->create(['name' => 'Alice']);
+        $user2 = User::factory()->create(['name' => 'Bob']);
+        $group = Group::factory()->create(['name' => 'Personal']);
+        $user1->groups()->attach($group);
+        $user2->groups()->attach($group);
+
+        Expense::factory()->for($user1)->for($group)->create(['amount' => 60]);
+        Expense::factory()->for($user2)->for($group)->create(['amount' => 40]);
+
+        $component = livewire(SpentByGroup::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats = $component->get('stats');
+        $users = $stats->first()->users;
+
+        expect($users)->toHaveCount(2)
+            ->and($users->first()->name)->toBe('Alice')
+            ->and($users->first()->total)->toBe(6000)
+            ->and($users->first()->percentage)->toBe(60)
+            ->and($users->last()->name)->toBe('Bob')
+            ->and($users->last()->total)->toBe(4000)
+            ->and($users->last()->percentage)->toBe(40);
+    });
+
+    it('calculates user percentages relative to group total, not grand total', function () {
+        $user1 = User::factory()->create(['name' => 'Alice']);
+        $user2 = User::factory()->create(['name' => 'Bob']);
+        $group1 = Group::factory()->create(['name' => 'Personal']);
+        $group2 = Group::factory()->create(['name' => 'Work']);
+        $user1->groups()->attach([$group1->id, $group2->id]);
+        $user2->groups()->attach($group1->id);
+
+        // Group 1: Alice spends 30, Bob spends 70 (total 100)
+        Expense::factory()->for($user1)->for($group1)->create(['amount' => 30]);
+        Expense::factory()->for($user2)->for($group1)->create(['amount' => 70]);
+
+        // Group 2: Alice spends 100 (total 100)
+        Expense::factory()->for($user1)->for($group2)->create(['amount' => 100]);
+
+        // Grand total: 200, but percentages should be relative to group totals
+
+        $component = livewire(SpentByGroup::class, [
+            'selectedGroups' => [$group1->id, $group2->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats = $component->get('stats');
+
+        // Group 1 (100/200 = 50% of grand total)
+        $group1Stats = $stats->firstWhere('name', 'Personal');
+        expect($group1Stats->percentage)->toBe(50);
+
+        // Alice in Group 1: 30/100 = 30% (of group, not grand total)
+        $aliceInGroup1 = $group1Stats->users->firstWhere('name', 'Alice');
+        expect($aliceInGroup1->percentage)->toBe(30);
+
+        // Bob in Group 1: 70/100 = 70% (of group, not grand total)
+        $bobInGroup1 = $group1Stats->users->firstWhere('name', 'Bob');
+        expect($bobInGroup1->percentage)->toBe(70);
+
+        // Group 2 (100/200 = 50% of grand total)
+        $group2Stats = $stats->firstWhere('name', 'Work');
+        expect($group2Stats->percentage)->toBe(50);
+
+        // Alice in Group 2: 100/100 = 100% (of group, not grand total)
+        $aliceInGroup2 = $group2Stats->users->firstWhere('name', 'Alice');
+        expect($aliceInGroup2->percentage)->toBe(100);
+    });
+
+    it('sorts users within each group by total descending', function () {
+        $user1 = User::factory()->create(['name' => 'Low Spender']);
+        $user2 = User::factory()->create(['name' => 'High Spender']);
+        $user3 = User::factory()->create(['name' => 'Medium Spender']);
+        $group = Group::factory()->create(['name' => 'Personal']);
+        $user1->groups()->attach($group);
+        $user2->groups()->attach($group);
+        $user3->groups()->attach($group);
+
+        Expense::factory()->for($user1)->for($group)->create(['amount' => 20]);
+        Expense::factory()->for($user2)->for($group)->create(['amount' => 80]);
+        Expense::factory()->for($user3)->for($group)->create(['amount' => 50]);
+
+        $component = livewire(SpentByGroup::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats = $component->get('stats');
+        $users = $stats->first()->users;
+
+        expect($users->pluck('name')->toArray())->toBe(['High Spender', 'Medium Spender', 'Low Spender']);
+    });
+
+    it('formats user amounts with currency sign', function () {
+        $user = User::factory()->create(['name' => 'John Doe']);
+        $group = Group::factory()->create(['name' => 'Personal']);
+        $user->groups()->attach($group);
+
+        Expense::factory()->for($user)->for($group)->create([
+            'amount' => 123.45,
+            'currency' => \App\Currency::USD,
+        ]);
+
+        $component = livewire(SpentByGroup::class, [
+            'selectedGroups' => [$group->id],
+            'dateRange' => DateRange::thisMonth(),
+        ]);
+
+        $stats = $component->get('stats');
+
+        expect($stats->first()->users->first()->formatted_amount)->toBe('$12,345.00');
+    });
+});
+
 describe('caching', function () {
     it('persists stats between requests with same filters', function () {
         $user = User::factory()->create();
